@@ -1,0 +1,1 @@
+/Users/100phlecs/.emacs.d/straight/repos/emacs-doom-themes/themes/doom-ir-black-theme.el

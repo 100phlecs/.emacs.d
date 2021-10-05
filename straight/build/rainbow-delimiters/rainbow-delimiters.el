@@ -1,0 +1,1 @@
+/Users/100phlecs/.emacs.d/straight/repos/rainbow-delimiters/rainbow-delimiters.el
