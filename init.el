@@ -5,7 +5,7 @@
 (set-fringe-mode 10)
 (setq ns-auto-hide-menu-bar nil)
 (set-face-attribute 'default nil :family "Iosevka" :height 170)
-(use-package no-littering)
+
 
 
 (defvar bootstrap-version)
@@ -25,6 +25,8 @@
 (straight-use-package 'use-package)
 
 (setq straight-use-package-by-default t)
+
+(use-package no-littering)
 
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
@@ -126,4 +128,6 @@
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 
-
+;; need to set up
+;; to browse issues & PRs
+(use-package forge)

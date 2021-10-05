@@ -1,1 +1,0 @@
-/Users/100phlecs/.emacs.d/straight/repos/no-littering/no-littering.el
