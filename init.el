@@ -139,13 +139,15 @@
 
 (defun efs/org-mode-setup ()
   (org-indent-mode)
-  (auto-fill-mode 0)
+  (auto-fill-mode 1)
   (visual-line-mode 1))
 (use-package org
   :hook (org-mode . efs/org-mode-setup)
   :config
+  (setq org-agenda-files '("~/Documents/ok/agenda/Tasks.org"))
   (setq org-ellipsis " ⤵"
-	org-hide-emphasis-markers t))
+	org-hide-emphasis-markers t)
+  :bind ("C-c a" . org-agenda))
 
 (use-package org-bullets
   :after org
@@ -170,6 +172,7 @@
 (setq lsp-dart-flutter-sdk-dir "/Users/100phlecs/packages/flutter")
 (add-hook 'dart-mode-hook 'lsp)
 (setq lsp-dart-dap-flutter-hot-reload-on-save t)
+(setq lsp-dart-enable-sdk-formatter t)
 (defun set-exec-path-from-shell-PATH ()
   "Set up Emacs' `exec-path' and PATH environment variable to match
 that used by the user's shell.
@@ -240,3 +243,8 @@ apps are not started from a shell."
 
 (use-package sly)
 (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
+
+(use-package activity-watch-mode)
+(global-activity-watch-mode)
+
+
