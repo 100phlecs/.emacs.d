@@ -144,9 +144,22 @@
 (use-package org
   :hook (org-mode . efs/org-mode-setup)
   :config
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
   (setq org-agenda-files '("~/Documents/ok/agenda/Tasks.org"))
   (setq org-ellipsis " ⤵"
 	org-hide-emphasis-markers t)
+  (setq org-todo-keywords
+    '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+      (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+  
+  (setq org-refile-targets
+    '(("Archive.org" :maxlevel . 1)
+      ("Tasks.org" :maxlevel . 1)))
+
+  ;; Save Org buffers after refiling!
+  (advice-add 'org-refile :after 'org-save-all-org-buffers)
   :bind ("C-c a" . org-agenda))
 
 (use-package org-bullets
@@ -232,7 +245,7 @@ apps are not started from a shell."
       lsp-signature-auto-activate nil)
 
 (use-package org-roam
-  :ensure t
+  :straight t
   :init
   (setq org-roam-v2-ack t)
   :custom
@@ -253,8 +266,8 @@ apps are not started from a shell."
   ("C-c n d" . org-roam-dailies-map)
   :config
   (require 'org-roam-dailies) ;; Ensure the keymap is available
-  (org-roam-db-autosync-mode))
-
+  (org-roam-db-autosync-mode)
+  (org-roam-setup))
 
 (use-package sly)
 (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
