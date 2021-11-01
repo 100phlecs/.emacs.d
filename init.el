@@ -147,7 +147,7 @@
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
-  (setq org-agenda-files '("~/Documents/ok/agenda/Tasks.org"))
+  (setq org-agenda-files '("~/Documents/ok/agenda/Tasks.org" "~/Documents/ok/agenda/Habits.org"))
   (setq org-ellipsis " ⤵"
 	org-hide-emphasis-markers t)
   (setq org-todo-keywords
@@ -157,7 +157,9 @@
   (setq org-refile-targets
     '(("Archive.org" :maxlevel . 1)
       ("Tasks.org" :maxlevel . 1)))
-
+  (require 'org-habit)
+  (add-to-list 'org-modules 'org-habit)
+  (setq org-habit-graph-column 60)
   ;; Save Org buffers after refiling!
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
   :bind ("C-c a" . org-agenda))
