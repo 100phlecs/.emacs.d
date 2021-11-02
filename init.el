@@ -10,6 +10,7 @@
 (set-face-attribute 'fixed-pitch nil :family "Iosevka Fixed" :height 170)
 (set-face-attribute 'variable-pitch nil :family "Iosevka" :height 170)
 
+(fset 'yes-or-no-p 'y-or-n-p)                                   ; substitute y-or-n for yes-or-no
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -175,8 +176,9 @@
   (setq lsp-keymap-prefix "C-c l")
   :config
   (lsp-enable-which-key-integration t))
-(use-package lsp-dart)
+
 (use-package dart-mode)
+(use-package lsp-dart)
 (use-package dap-mode)
 (use-package flycheck)
 (use-package company
@@ -245,6 +247,13 @@ apps are not started from a shell."
       company-minimum-prefix-length 1
       lsp-lens-enable t
       lsp-signature-auto-activate nil)
+
+(use-package yasnippet)
+(yas-global-mode 1)
+
+(use-package doom-snippets
+  :after yasnippet
+  :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
 
 (use-package org-roam
   :straight t
