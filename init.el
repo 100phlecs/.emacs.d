@@ -199,7 +199,23 @@
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-doc-position 'bottom))
+(global-company-mode t)
 
+(defun text-mode-hook-setup ()
+  ;; make `company-backends' local is critcal
+  ;; or else, you will have completion in every major mode, that's very annoying!
+  (make-local-variable 'company-backends)
+
+  ;; company-ispell is the plugin to complete words
+  (add-to-list 'company-backends 'company-ispell)
+  )
+
+(add-hook 'text-mode-hook 'text-mode-hook-setup)
+
+(global-set-key (kbd "C-:") #'ispell)
+
+
+ 
 (setq lsp-dart-sdk-dir "/Users/100phlecs/packages/flutter/bin/cache/dart-sdk")
 (setq lsp-dart-flutter-sdk-dir "/Users/100phlecs/packages/flutter")
 (add-hook 'dart-mode-hook 'lsp)
@@ -248,12 +264,23 @@ apps are not started from a shell."
       lsp-lens-enable t
       lsp-signature-auto-activate nil)
 
+(use-package flutter
+  :after dart-mode
+  :bind (:map dart-mode-map
+	      ("C-M-x" . #'flutter-run-or-hot-reload))
+  :custom
+  (flutter-sdk-path "/Users/100phlecs/packages/flutter/"))
+
 (use-package yasnippet)
 (yas-global-mode 1)
 
 (use-package doom-snippets
   :after yasnippet
   :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
+
+(use-package whole-line-or-region
+  :straight (whole-line-or-region :type git :host github :repo "purcell/whole-line-or-region" :files ("*.el" "*")))
+(whole-line-or-region-global-mode t)
 
 (use-package org-roam
   :straight t
@@ -293,17 +320,3 @@ apps are not started from a shell."
 
 (use-package activity-watch-mode)
 (global-activity-watch-mode)
-
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(warning-suppress-types '((comp) (comp))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
