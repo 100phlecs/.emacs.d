@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t -*-
   (setenv "LIBRARY_PATH" "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib/gcc/11/gcc/aarch64-apple-darwin20/11.1.0")
+(setq gc-cons-threshold (* 50 1000 1000))
   (defvar bootstrap-version)
   (let ((bootstrap-file
          (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -15,7 +16,7 @@
 
   (straight-use-package 'use-package)
   (setq straight-use-package-by-default t)
-
+  (setq use-package-always-defer t)
   (use-package no-littering)
 
   (setq custom-file "~/.emacs.d/custom.el")
@@ -23,6 +24,14 @@
        (message (concat  "File " (concat custom-file " already exists")))
      (with-temp-buffer (write-file custom-file)))
   (load custom-file)
+
+(add-hook 'emacs-startup-hook
+        (lambda ()
+          (message "Emacs ready in %s with %d garbage collections."
+                   (format "%.2f seconds"
+                           (float-time
+                            (time-subtract after-init-time before-init-time)))
+                   gcs-done)))
 
 (menu-bar-mode t)
 (scroll-bar-mode -1)
@@ -133,12 +142,8 @@
 (add-hook 'text-mode-hook 'text-mode-hook-setup)
 (global-set-key (kbd "C-:") #'ispell)
 
-(use-package yasnippet)
-(yas-global-mode 1)
-
-(use-package doom-snippets
-  :after yasnippet
-  :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
+(use-package yasnippet
+  :init (yas-global-mode 1))
 
 (use-package whole-line-or-region
   :straight (whole-line-or-region :type git :host github :repo "purcell/whole-line-or-region" :files ("*.el" "*")))
@@ -148,7 +153,8 @@
 
 (use-package vertico)
     (vertico-mode)
-
+(use-package orderless
+  :custom (completion-styles '(orderless)))
     ;; Example configuration for Consult
   (use-package consult
     ;; Replace bindings. Lazily loaded due by `use-package'.
@@ -349,23 +355,23 @@
   '((emacs-lisp . t)
     (python . t)))
 
-(push '("conf-unix" . conf-unix) org-src-lang-modes)
+  (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
-(require 'org-tempo)
-(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-(add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
 
 
-  ;; Automatically tangle our Emacs.org config file when we save it
-(defun phl/org-babel-tangle-config ()
-  (when (string-equal (buffer-file-name)
-                        (expand-file-name "~/.emacs.d/README.org"))
-      ;; Dynamic scoping to the rescue
-      (let ((org-confirm-babel-evaluate nil))
-        (org-babel-tangle))))
+    ;; Automatically tangle our Emacs.org config file when we save it
+  (defun phl/org-babel-tangle-config ()
+    (when (string-equal (buffer-file-name)
+                          (expand-file-name "~/.emacs.d/README.org"))
+        ;; Dynamic scoping to the rescue
+        (let ((org-confirm-babel-evaluate nil))
+          (org-babel-tangle))))
 
-  (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl/org-babel-tangle-config)))
+    (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl/org-babel-tangle-config)))
 
 (use-package eglot)
 
@@ -378,16 +384,22 @@
 
 (use-package dart-mode)
 
+(use-package esup
+  :config
+  (setq esup-depth 0)
+  )
+
 (use-package activity-watch-mode)
 (global-activity-watch-mode)
 
 (use-package pomidor
-  :bind (("<f12>" . pomidor))
-  :config (setq pomidor-sound-tick nil
-                pomidor-sound-tack nil)
-  :hook (pomidor-mode . (lambda ()
-                          (display-line-numbers-mode -1) ; Emacs 26.1+
-                          (setq left-fringe-width 0 right-fringe-width 0)
-                          (setq left-margin-width 2 right-margin-width 0)
-                          ;; force fringe update
-                          (set-window-buffer nil (current-buffer)))))
+    :bind (("<f12>" . pomidor))
+    :config (setq pomidor-sound-tick nil
+                  pomidor-sound-tack nil)
+    :hook (pomidor-mode . (lambda ()
+                            (display-line-numbers-mode -1) ; Emacs 26.1+
+                            (setq left-fringe-width 0 right-fringe-width 0)
+                            (setq left-margin-width 2 right-margin-width 0)
+                            ;; force fringe update
+                            (set-window-buffer nil (current-buffer)))))
+(setq gc-cons-threshold (* 2 1000 1000))
