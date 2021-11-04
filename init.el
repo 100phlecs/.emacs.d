@@ -342,6 +342,8 @@
   (org-roam-db-autosync-mode)
   (org-roam-setup))
 
+(use-package org-make-toc)
+
 (defun org-roam-node-insert-immediate (arg &rest args)
   (interactive "P")
   (let ((args (cons arg args))

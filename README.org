@@ -8,6 +8,48 @@ you'll stop using. In short, it's hard to use =emacs= when you don't
 feel free to 'waste' time. I think a lot of things are solved - in
 =emacs= or outside of it - when you realize you can 'waste' time.  May
 as well get returns if you got a lifetime ahead of you!
+* Table of Contents
+:PROPERTIES:
+:TOC:      :include all :depth 3 :force (depth) :ignore (this) :local (depth)
+:END:
+Here's a quick overview.
+:CONTENTS:
+- [[#bootstrap][Bootstrap]]
+- [[#appearance][Appearance]]
+  - [[#basic-ui][Basic UI]]
+  - [[#font][Font]]
+  - [[#modeline][Modeline]]
+  - [[#rainbow-parenthesescurlies][Rainbow Parentheses/Curlies]]
+  - [[#theme---solarized][Theme - Solarized]]
+- [[#discoverability--navigation][Discoverability / Navigation]]
+  - [[#which-key][which key]]
+  - [[#its-magit][It's magit!]]
+  - [[#yes-or-no---y-or-n][yes-or-no -> y-or-n]]
+  - [[#hydra][hydra]]
+  - [[#helpful][helpful]]
+  - [[#complete-at-pointautocompletion][complete at point/autocompletion]]
+  - [[#yasnippet][yasnippet]]
+  - [[#whole-line-or-region][whole-line-or-region]]
+  - [[#project-management][project management]]
+  - [[#search-completion][search completion]]
+- [[#org][Org]]
+  - [[#need-to-clean-this-up][need to clean this up.]]
+  - [[#ui-setup][UI Setup]]
+  - [[#grab-org-and-its-modules][Grab org and its modules]]
+  - [[#org-bullets][org bullets]]
+  - [[#org-roam][org-roam]]
+  - [[#org-toc][org-toc]]
+  - [[#easily-insert-nodes-quicker][Easily insert nodes quicker]]
+  - [[#org-tangle][org tangle]]
+  - [[#language-server-eglot][Language Server (eglot)]]
+  - [[#dartflutter][Dart/Flutter]]
+- [[#diagnostics][Diagnostics]]
+  - [[#esup][ESUP]]
+  - [[#activitywatch][ActivityWatch]]
+  - [[#pomodoro-technique][Pomodoro Technique]]
+  - [[#add-sound-for-pomodoro][add sound for pomodoro]]
+- [[#resources][Resources]]
+:END:
 
 * Bootstrap 
 
@@ -484,6 +526,10 @@ The best journalling app ever.
   (require 'org-roam-dailies) ;; Ensure the keymap is available
   (org-roam-db-autosync-mode)
   (org-roam-setup))
+#+end_src
+** org-toc
+#+begin_src emacs-lisp
+(use-package org-make-toc)
 #+end_src
 ** Easily insert nodes quicker
 #+begin_src emacs-lisp
