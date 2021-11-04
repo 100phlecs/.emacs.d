@@ -2,26 +2,33 @@
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
 I tried out emacs about a year and half ago. Then quit after being too
-annoyed configuring things. Yet here I am trying again. It takes time. If
-you don't feel like you have the freedom to explore, you won't. Then
-you'll stop using. In short, it's hard to use =emacs= when you don't
-feel free to 'waste' time. I think a lot of things are solved - in
-=emacs= or outside of it - when you realize you can 'waste' time.  May
-as well get returns if you got a lifetime ahead of you!
+annoyed configuring things. But then I got more annoyed by how bad
+default configurations are.
+
+If I could travel back and advise what to do to start again, I would
+not look online at all.
+
+Emacs starts with a buffer called *GNU EMACS*. Most guides advise to
+disable it immediately! But if I could go back in time, I wouldn't
+disable it. I would read every link. Go through the tutorial, then
+read the manual.
+
+RTFM and add packages /as you need them/. As in, frame an annoyance and
+look it up. Just start using it. And when you find a grievance, you'll
+find a solution. Just gotta read. You'll be surprised how often Emacs
+ships a solution.
+
 * Table of Contents
 :PROPERTIES:
 :TOC:      :include all :depth 3 :force (depth) :ignore (this) :local (depth)
 :END:
-
-Here's a quick overview.
-
 :CONTENTS:
 - [[#bootstrapping][Bootstrapping]]
   - [[#more-path-loading][More path loading]]
+  - [[#diminish][Diminish]]
 - [[#appearance][Appearance]]
   - [[#basic-ui][Basic UI]]
   - [[#font][Font]]
-  - [[#modeline][Modeline]]
   - [[#rainbow-parenthesescurlies][Rainbow Parentheses/Curlies]]
   - [[#theme---solarized][Theme - Solarized]]
 - [[#discoverability--navigation][Discoverability / Navigation]]
@@ -55,17 +62,19 @@ Here's a quick overview.
 - [[#resources][Resources]]
 :END:
 
-* Bootstrapping 
+* Bootstrapping
 
-To begin, we'll need to get the package manager ready.
-This'll include both fetching and configuring it.
-We'll also need some path variables set, for [[https://github.com/d12frosted/homebrew-emacs-plus/issues/378][gccemacs]] and terminal.
-While we're here, I'll also grab a package that keeps saves and other
-files in the emacs.d directory, the [[https://github.com/emacscollective/no-littering][no-littering]] package.
-For safely loading themes and such we'll move that to another file location.
+** Starting up
 Lexical binding adds flexibility/speed for the packages that detect
-it.
-It's also neat to see how long it took for the config to complete.
+it. And then package managers makes things easy.  We'll also need some path
+variables set, for [[https://github.com/d12frosted/homebrew-emacs-plus/issues/378][gccemacs]] and terminal.  While we're here, I'll also
+grab a package that keeps saves and other files in the emacs.d
+directory, the [[https://github.com/emacscollective/no-littering][no-littering]] package. If you don't set this early on,
+there'll be a lot of litter.
+
+For safely loading themes and such we'll move that to another
+file. Then as a final touch we'll see how long it takes for emacs to
+start.
 
 #+begin_src emacs-lisp
   ;; -*- lexical-binding: t -*-
@@ -105,25 +114,37 @@ It's also neat to see how long it took for the config to complete.
                      gcs-done)))
 #+end_src
 
-** More path loading
-Need to get the environment set correctly.
+** More [[https://github.com/purcell/exec-path-from-shell][path loading]]
+Need to get the environment set correctly, otherwise terminals won't
+work or certain packages. This is for GUI emacs.
 
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
     :init
     (exec-path-from-shell-initialize))
+#+end_#+begin_src 
+
+#+end_src
+
+** [[https://github.com/myrjola/diminish.el][Diminish]]
+To 'diminish' a mode is to no longer have it show up in the
+modeline. Useful to remove clutter from the modeline.
+
+#+begin_src emacs-lisp
+(use-package diminish)
 #+end_src
 
 * Appearance
 Now that we're loading in =emacs=, it's nice to keep it clean, but not
-/too/ clean
+/too/ clean.
 ** Basic UI
 Many people seem to discount the satisfaction of using the
-=menu-bar-mode= - it's a great way to explore keybindings and
-possibilities.
+=menu-bar-mode= - it's a great way to explore and remind yourself. I
+find myself using my mouse more than I thought I would - to scroll a
+buffer, click a command, resize stuff, etc.
 
 Relative line column numbers (counting which line you're on) helps
-with chording commands. But of course they're useless for some
+with command chording. But of course they're useless for some
 buffers, so we'll disable them.
 
 #+begin_src emacs-lisp
@@ -150,8 +171,8 @@ buffers, so we'll disable them.
 I really enjoy [[https://github.com/be5invis/iosevka][Iosevka]]. The cramped nature of it may be offputting, but
 after using it for a couple of weeks I can't use anything else.
 
-Trying out ligatures too. Real easy with [[https://github.com/mickeynp/ligature.el][ligature.el]] - they gave me
-the Iosevka example below.
+Comes with ligatures. Real easy with [[https://github.com/mickeynp/ligature.el][ligature.el]] - they gave me
+the Iosevka example below. 
 
 #+begin_src emacs-lisp
 
@@ -173,30 +194,19 @@ the Iosevka example below.
 
 #+end_src
 
-** Modeline
-For now I'm using the [[https://github.com/seagle0128/doom-modeline][doom modeline]] which does look nice. I wonder if
-it distracts.
-
-#+begin_src emacs-lisp
-  (use-package doom-modeline
-    :straight t
-    :init (doom-modeline-mode 1)
-    :custom (doom-modeline-height 20))
-
-#+end_src
-
-** Rainbow Parentheses/Curlies
+** [[https://github.com/Fanael/rainbow-delimiters][Rainbow Parentheses/Curlies]]
 Super nice to have in any prog file.
 
 #+begin_src emacs-lisp
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode)
+    :diminish rainbow-delimiters-mode)
 #+end_src
 
 ** Theme - Solarized
 After thumbing through a lot of themes, I found the [[https://github.com/bbatsov/solarized-emacs][solarized]]
 themescape to be the one that just works.
-Trying out a subset of it, =gruvbox= as inspiration.
+Trying out a subset of it.
 
 #+begin_src emacs-lisp
 (use-package solarized-theme)
@@ -212,8 +222,7 @@ find things.
 
 ** [[https://github.com/justbur/emacs-which-key][which key]]
 A little popup that comes after you start a key chord. Super useful,
-use it all the time. To 'diminish' the mode means to make it not
-appear. Probably need to find the other modes for which that is applicable.
+use it all the time, excessively. 
 
 #+begin_src emacs-lisp
 (use-package which-key
@@ -236,8 +245,8 @@ Quicker confirmations
 (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
-** hydra
-Repeatable commands. Only use it for text size, but maybe more ideas
+** [[https://github.com/abo-abo/hydra][hydra]]
+Only use it for text size, but maybe more ideas
 will come or I'll stop using this.
 
 #+begin_src emacs-lisp
@@ -281,8 +290,7 @@ Getting comfortable at looking variables/functions is the way to go.
 
 ** complete at point/autocompletion
 Autocompletion is smart for any sort of typing, isn't it? So I enable
-[[https://company-mode.github.io/][company]] globally. It may not be a good idea, but we'll see. While I'm
-touching ispell (spell check) I add a small keybind.
+[[https://company-mode.github.io/][company]].
 
 #+begin_src emacs-lisp
   (use-package company
@@ -299,7 +307,7 @@ touching ispell (spell check) I add a small keybind.
     (global-set-key (kbd "C-:") #'ispell)
 #+end_src
 
-** yasnippet
+** [[https://github.com/joaotavora/yasnippet][yasnippet]]
 Templating is sure convenient to have, wondering when I'll make more
 use of it.
 #+begin_src emacs-lisp
@@ -310,7 +318,7 @@ use of it.
   :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
 #+end_src
 
-** whole-line-or-region
+** [[https://github.com/purcell/whole-line-or-region][whole-line-or-region]]
 Quick swapout to make more use of M-w instead of doing C-a C-k C-k
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
@@ -318,7 +326,7 @@ Quick swapout to make more use of M-w instead of doing C-a C-k C-k
 (whole-line-or-region-global-mode t)
 #+end_src
 
-** project management
+** [[https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/project.el][project]] management
 Originally used projectile, going to give project.el a try. Don't have
 much to say about it at this point.
 #+begin_src emacs-lisp
@@ -336,6 +344,7 @@ much to say about it at this point.
 #+end_src
 
 ** search completion
+This is super messy, need to split this up later.
 Originally tried out ivy, going to try out  other packages and
 see how it goes. For now I'll use vertico after some debilitating
 thought.
@@ -607,7 +616,6 @@ The best journalling app ever.
 (global-set-key (kbd "C-c n I") #'org-roam-node-insert-immediate)
 #+end_src
 
-
 ** org tangle
 
 This is how one generates the configuration. And also edit this
@@ -656,6 +664,7 @@ Using lsp-mode because it was snappier after all.
     :custom
     (lsp-ui-doc-position 'bottom))
 #+end_src
+
 ** Dart/Flutter
 Surprised how well this is integrated. You just need two packages
 *** flutter.el
@@ -667,7 +676,8 @@ Surprised how well this is integrated. You just need two packages
   :custom
   (setq flutter-sdk-path "/Users/100phlecs/packages/flutter/"))
 #+end_src
-*** dart-mode
+
+*** dart-modbe
 #+begin_src emacs-lisp
             (use-package dart-mode
               :hook (dart-mode . lsp))
@@ -698,8 +708,11 @@ Previously I used RescueTime but eventually stopped for unknown
 reasons.
 
 #+begin_src emacs-lisp
-(use-package activity-watch-mode)
-(global-activity-watch-mode)
+  (use-package activity-watch-mode
+    :init
+     (global-activity-watch-mode)
+    :diminish activity-watch-mode)
+
 #+end_src
 
 ** Pomodoro Technique
@@ -707,23 +720,22 @@ Trying out this technique. Seeing if it works for me. I think it does
 in terms of increasing my focus time.
 Using [[https://github.com/TatriX/pomidor/][pomidor]], quite nice.
 #+begin_src emacs-lisp
-  (use-package pomidor
-    :bind (("<f12>" . pomidor))
-    :config (setq pomidor-sound-tick nil
-                  pomidor-sound-tack nil)
-    :hook (pomidor-mode . (lambda ()
-                            (display-line-numbers-mode -1) ; Emacs 26.1+
-                            (setq left-fringe-width 0 right-fringe-width 0)
-                            (setq left-margin-width 2 right-margin-width 0)
-                            ;; force fringe update
-                            (set-window-buffer nil (current-buffer)))))
-(setq gc-cons-threshold (* 2 1000 1000))
+    (use-package pomidor
+      :bind (("<f12>" . pomidor))
+      :config (setq pomidor-sound-tick nil
+                    pomidor-sound-tack nil)
+      :hook (pomidor-mode . (lambda ()
+                              (display-line-numbers-mode -1) ; Emacs 26.1+
+                              (setq left-fringe-width 0 right-fringe-width 0)
+                              (setq left-margin-width 2 right-margin-width 0)
+                              ;; force fringe update
+                              (set-window-buffer nil (current-buffer)))))
 #+end_src
 
 ** TODO add sound for pomodoro
 * Resources
-I was only able to get my footing by following [[https://github.com/daviwil/emacs-from-scratch/][Emacs from Scratch]]. Do
-check SystemCrafter's [[https://systemcrafters.net/emacs-from-scratch/][wiki page]] for information if videos are too much
-for you!
+I was only able to follow a path of least resistance by following
+[[https://github.com/daviwil/emacs-from-scratch/][Emacs from Scratch]]. Do check SystemCrafter's [[https://systemcrafters.net/emacs-from-scratch/][wiki page]] for information
+if videos are too much for you!
 
 

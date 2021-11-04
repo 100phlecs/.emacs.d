@@ -35,8 +35,11 @@
                    gcs-done)))
 
 (use-package exec-path-from-shell
-  :init
-  (exec-path-from-shell-initialize))
+    :init
+    (exec-path-from-shell-initialize))
+#+end_#+begin_src
+
+(use-package diminish)
 
 (menu-bar-mode t)
 (scroll-bar-mode -1)
@@ -72,13 +75,9 @@
   ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
 
-(use-package doom-modeline
-  :straight t
-  :init (doom-modeline-mode 1)
-  :custom (doom-modeline-height 20))
-
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode)
+  :diminish rainbow-delimiters-mode)
 
 (use-package solarized-theme)
 (setq solarized-use-more-italic t)
@@ -454,17 +453,18 @@
   (setq esup-depth 0)
   )
 
-(use-package activity-watch-mode)
-(global-activity-watch-mode)
+(use-package activity-watch-mode
+  :init
+   (global-activity-watch-mode)
+  :diminish activity-watch-mode)
 
 (use-package pomidor
-    :bind (("<f12>" . pomidor))
-    :config (setq pomidor-sound-tick nil
-                  pomidor-sound-tack nil)
-    :hook (pomidor-mode . (lambda ()
-                            (display-line-numbers-mode -1) ; Emacs 26.1+
-                            (setq left-fringe-width 0 right-fringe-width 0)
-                            (setq left-margin-width 2 right-margin-width 0)
-                            ;; force fringe update
-                            (set-window-buffer nil (current-buffer)))))
-(setq gc-cons-threshold (* 2 1000 1000))
+  :bind (("<f12>" . pomidor))
+  :config (setq pomidor-sound-tick nil
+                pomidor-sound-tack nil)
+  :hook (pomidor-mode . (lambda ()
+                          (display-line-numbers-mode -1) ; Emacs 26.1+
+                          (setq left-fringe-width 0 right-fringe-width 0)
+                          (setq left-margin-width 2 right-margin-width 0)
+                          ;; force fringe update
+                          (set-window-buffer nil (current-buffer)))))
