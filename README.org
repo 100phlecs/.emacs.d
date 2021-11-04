@@ -24,6 +24,7 @@ ships a solution.
 :END:
 :CONTENTS:
 - [[#bootstrapping][Bootstrapping]]
+  - [[#starting-up][Starting up]]
   - [[#more-path-loading][More path loading]]
   - [[#diminish][Diminish]]
 - [[#appearance][Appearance]]
