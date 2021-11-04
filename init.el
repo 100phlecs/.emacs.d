@@ -17,7 +17,7 @@
 
   (straight-use-package 'use-package)
   (setq straight-use-package-by-default t)
-  (setq use-package-always-defer t)
+
   (use-package no-littering)
 
   (setq custom-file "~/.emacs.d/custom.el")
@@ -149,12 +149,54 @@
   :straight (whole-line-or-region :type git :host github :repo "purcell/whole-line-or-region" :files ("*.el" "*")))
 (whole-line-or-region-global-mode t)
 
-(use-package project)
+(use-package project
+  :after magit
+  :init
+  (setq project-switch-commands
+    '((project-find-file "Find file" nil)
+     (project-find-regexp "Find regexp" nil)
+     (project-find-dir "Find directory" nil)
+     (project-vc-dir "VC-Dir" nil)
+     (project-eshell "Eshell" nil)
+     (magit-status "Magit" ?m))))
 
 (use-package vertico)
     (vertico-mode)
+
+(use-package corfu
+;; Optional customizations
+;; :custom
+;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+;; (corfu-auto t)                 ;; Enable auto completion
+;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
+;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
+;; (corfu-quit-no-match t)        ;; Automatically quit if there is no match
+;; (corfu-echo-documentation nil) ;; Do not show documentation in the echo area
+
+;; Optionally use TAB for cycling, default is `corfu-complete'.
+;; :bind (:map corfu-map
+;;        ("TAB" . corfu-next)
+;;        ([tab] . corfu-next)
+;;        ("S-TAB" . corfu-previous)
+;;        ([backtab] . corfu-previous))
+
+;; You may want to enable Corfu only for certain modes.
+;; :hook ((prog-mode . corfu-mode)
+;;        (shell-mode . corfu-mode)
+;;        (eshell-mode . corfu-mode))
+
+;; Recommended: Enable Corfu globally.
+;; This is recommended since dabbrev can be used globally (M-/).
+:init
+(corfu-global-mode))
 (use-package orderless
-  :custom (completion-styles '(orderless)))
+:init
+;; Configure a custom style dispatcher (see the Consult wiki)
+;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+;;       orderless-component-separator #'orderless-escapable-split-on-space)
+(setq completion-styles '(orderless)
+      completion-category-defaults nil
+      completion-category-overrides '((file (styles . (partial-completion))))))
     ;; Example configuration for Consult
   (use-package consult
     ;; Replace bindings. Lazily loaded due by `use-package'.
