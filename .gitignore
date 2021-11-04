@@ -7,3 +7,12 @@ var
 straight
 eln-cache
 /custom.el
+/%backup%~
+/.dap-breakpoints
+/.lsp-session-v1
+/.org-id-locations
+/bookmarks
+/bookmarks~
+/eshell/
+/org-roam.db
+/projects

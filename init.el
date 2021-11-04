@@ -1,5 +1,6 @@
 ;; -*- lexical-binding: t -*-
-  (setenv "LIBRARY_PATH" "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib/gcc/11/gcc/aarch64-apple-darwin20/11.1.0")
+(setenv "LIBRARY_PATH" "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib/gcc/11/gcc/aarch64-apple-darwin20/11.1.0")
+
 (setq gc-cons-threshold (* 50 1000 1000))
   (defvar bootstrap-version)
   (let ((bootstrap-file
@@ -32,6 +33,10 @@
                            (float-time
                             (time-subtract after-init-time before-init-time)))
                    gcs-done)))
+
+(use-package exec-path-from-shell
+  :init
+  (exec-path-from-shell-initialize))
 
 (menu-bar-mode t)
 (scroll-bar-mode -1)
@@ -122,28 +127,23 @@
     (global-set-key (kbd "C-h C") #'helpful-command)
 
 (use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
   :bind (:map company-active-map
-	      ("<tab>" . company-complete-selection))
+              ("<tab>" . company-complete-selection))
+  (:map lsp-mode-map
+        ("<tab>" . company-indent-or-complete-common))
   :custom
   (company-minimum-prefix-length 1)
   (company-idle-delay 0.0))
 
-(global-company-mode t)
-
-(defun text-mode-hook-setup ()
-  ;; make `company-backends' local is critcal
-  ;; or else, you will have completion in every major mode, that's very annoying!
-  (make-local-variable 'company-backends)
-
-  ;; company-ispell is the plugin to complete words
-  (add-to-list 'company-backends 'company-ispell)
-  )
-
-(add-hook 'text-mode-hook 'text-mode-hook-setup)
-(global-set-key (kbd "C-:") #'ispell)
+  (global-set-key (kbd "C-:") #'ispell)
 
 (use-package yasnippet
   :init (yas-global-mode 1))
+(use-package doom-snippets
+:after yasnippet
+:straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
 
 (use-package whole-line-or-region
   :straight (whole-line-or-region :type git :host github :repo "purcell/whole-line-or-region" :files ("*.el" "*")))
@@ -286,6 +286,9 @@
   ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
 
+(use-package consult-yasnippet
+  :bind ("C-x C-y" . consult-yasnippet))
+
 (defun phl/org-mode-setup ()
   (org-indent-mode)
   (auto-fill-mode 1)
@@ -356,10 +359,11 @@
   'org-babel-load-languagesp
   '((emacs-lisp . t)
     (python . t)))
-
+(setq org-src-tab-acts-natively t)
   (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
   (require 'org-tempo)
+
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
@@ -375,7 +379,18 @@
 
     (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl/org-babel-tangle-config)))
 
-(use-package eglot)
+(use-package lsp-mode
+    :commands (lsp lsp-deffered)
+    :init
+    (setq lsp-keymap-prefix "C-c l")
+
+    :config
+    (lsp-enable-which-key-integration t))
+
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-doc-position 'bottom))
 
 (use-package flutter
   :after dart-mode
@@ -384,7 +399,13 @@
   :custom
   (setq flutter-sdk-path "/Users/100phlecs/packages/flutter/"))
 
-(use-package dart-mode)
+(use-package dart-mode
+  :hook (dart-mode . lsp))
+(use-package lsp-dart
+  :init
+  (setq lsp-dart-sdk-dir "/Users/100phlecs/packages/flutter/bin/cache/dart-sdk")
+  (setq lsp-dart-flutter-sdk-dir "/Users/100phlecs/packages/flutter")
+  (setq lsp-dart-enable-sdk-formatter t))
 
 (use-package esup
   :config
