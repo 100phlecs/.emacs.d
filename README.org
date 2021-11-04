@@ -1,5 +1,6 @@
-#+title 100phlecs of elisp
+#+title: 100phlecs of elisp
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
+
 
 * Bootstrap 
 
