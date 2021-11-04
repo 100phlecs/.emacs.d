@@ -1,14 +1,13 @@
-#+title 100phlecs of elisp
+#+title: 100phlecs of elisp
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
-I tried out emacs about a year and half ago then quit. Here I am
+I tried outemacs about a year and half ago then quit. Here I am
 trying again. It takes time. If you don't feel like you have the
 freedom to explore, you won't. Then you'll stop using. In short, it's
 hard to use =emacs= when you don't feel free to 'waste' time. I think a
 lot of things are solved - in =emacs= or outside of it - when you
 realize you can 'waste' time.
 May as well get returns if you got a lifetime ahead of you!
-
 
 * Bootstrap 
 
