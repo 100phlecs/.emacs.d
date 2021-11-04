@@ -2,3 +2,4 @@ etc
 var
 straight
 eln-cache
+/custom.el
