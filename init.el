@@ -397,13 +397,18 @@
   :custom
   (org-roam-directory "~/Documents/ok")
   (org-roam-completion-everywhere t)
+    (defun phl/org-roam-rg ()
+    "Search across the content of the root org dir"
+    (interactive)
+    (consult-ripgrep org-roam-directory))
   (org-roam-dailies-capture-templates
       '(("d" "default" entry "* %<%I:%M %p>: %?"
          :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
-         :map org-mode-map
+         ("C-c n r" . phl/org-roam-rg)
+           :map org-mode-map
          ("C-M-i" . completion-at-point)
          :map org-roam-dailies-map
          ("Y" . org-roam-dailies-capture-yesterday)
@@ -430,32 +435,32 @@
   '((emacs-lisp . t)
     (python . t)))
 (setq org-src-tab-acts-natively t)
-  (push '("conf-unix" . conf-unix) org-src-lang-modes)
+(push '("conf-unix" . conf-unix) org-src-lang-modes)
 
-  (require 'org-tempo)
+(require 'org-tempo)
 
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
 
 
-    ;; Automatically tangle our Emacs.org config file when we save it
-  (defun phl/org-babel-tangle-config ()
-    (when (string-equal (buffer-file-name)
-                          (expand-file-name "~/.emacs.d/README.org"))
-        ;; Dynamic scoping to the rescue
-        (let ((org-confirm-babel-evaluate nil))
-          (org-babel-tangle))))
+;; Automatically tangle our .org config file when we save it
+(defun phl/org-babel-tangle-config ()
+  (when (string-equal (buffer-file-name)
+                      (expand-file-name "~/.emacs.d/README.org"))
+    ;; Dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
 
-    (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl/org-babel-tangle-config)))
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl/org-babel-tangle-config)))
 
 (use-package lsp-mode
-    :commands (lsp lsp-deffered)
-    :init
-    (setq lsp-keymap-prefix "C-c l")
+  :commands (lsp lsp-deffered)
+  :init
+  (setq lsp-keymap-prefix "C-c l")
 
-    :config
-    (lsp-enable-which-key-integration t))
+  :config
+  (lsp-enable-which-key-integration t))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -479,8 +484,7 @@
 
 (use-package esup
   :config
-  (setq esup-depth 0)
-  )
+  (setq esup-depth 0))
 
 (use-package activity-watch-mode
   :init

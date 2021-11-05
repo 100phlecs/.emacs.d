@@ -570,7 +570,6 @@ So far consult buffer preview is pretty nice.
 #+end_src
 
 * Org
-** TODO need to clean this up.
 The more I use it the more I wonder why I haven't used it before.
 ** UI Setup
 
@@ -615,32 +614,37 @@ The more I use it the more I wonder why I haven't used it before.
 #+end_src
 
 ** org-roam
-The best journalling app ever.
+Quickest way to become a profilic writer.
 #+begin_src emacs-lisp
-(use-package org-roam
-  :straight t
-  :init
-  (setq org-roam-v2-ack t)
-  :custom
-  (org-roam-directory "~/Documents/ok")
-  (org-roam-completion-everywhere t)
-  (org-roam-dailies-capture-templates
-      '(("d" "default" entry "* %<%I:%M %p>: %?"
-         :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         :map org-mode-map
-         ("C-M-i" . completion-at-point)
-         :map org-roam-dailies-map
-         ("Y" . org-roam-dailies-capture-yesterday)
-         ("T" . org-roam-dailies-capture-tomorrow))
-  :bind-keymap
-  ("C-c n d" . org-roam-dailies-map)
-  :config
-  (require 'org-roam-dailies) ;; Ensure the keymap is available
-  (org-roam-db-autosync-mode)
-  (org-roam-setup))
+  (use-package org-roam
+    :straight t
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "~/Documents/ok")
+    (org-roam-completion-everywhere t)
+      (defun phl/org-roam-rg ()
+      "Search across the content of the root org dir"
+      (interactive)
+      (consult-ripgrep org-roam-directory))
+    (org-roam-dailies-capture-templates
+        '(("d" "default" entry "* %<%I:%M %p>: %?"
+           :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n r" . phl/org-roam-rg)
+             :map org-mode-map
+           ("C-M-i" . completion-at-point)
+           :map org-roam-dailies-map
+           ("Y" . org-roam-dailies-capture-yesterday)
+           ("T" . org-roam-dailies-capture-tomorrow))
+    :bind-keymap
+    ("C-c n d" . org-roam-dailies-map)
+    :config
+    (require 'org-roam-dailies) ;; Ensure the keymap is available
+    (org-roam-db-autosync-mode)
+    (org-roam-setup))
 #+end_src
 
 ** org-toc
@@ -671,37 +675,37 @@ We can just autogenerate it with this snippet.
     '((emacs-lisp . t)
       (python . t)))
   (setq org-src-tab-acts-natively t)
-    (push '("conf-unix" . conf-unix) org-src-lang-modes)
+  (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
-    (require 'org-tempo)
+  (require 'org-tempo)
 
-    (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-    (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
 
 
-      ;; Automatically tangle our Emacs.org config file when we save it
-    (defun phl/org-babel-tangle-config ()
-      (when (string-equal (buffer-file-name)
-                            (expand-file-name "~/.emacs.d/README.org"))
-          ;; Dynamic scoping to the rescue
-          (let ((org-confirm-babel-evaluate nil))
-            (org-babel-tangle))))
+  ;; Automatically tangle our .org config file when we save it
+  (defun phl/org-babel-tangle-config ()
+    (when (string-equal (buffer-file-name)
+                        (expand-file-name "~/.emacs.d/README.org"))
+      ;; Dynamic scoping to the rescue
+      (let ((org-confirm-babel-evaluate nil))
+        (org-babel-tangle))))
 
-      (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl/org-babel-tangle-config)))
+  (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl/org-babel-tangle-config)))
 #+end_src
 
 * Programming
 ** Language Server (lsp-mode)
 Using lsp-mode because it was snappier after all.
 #+begin_src emacs-lisp
-    (use-package lsp-mode
-      :commands (lsp lsp-deffered)
-      :init
-      (setq lsp-keymap-prefix "C-c l")
-      
-      :config
-      (lsp-enable-which-key-integration t))
+  (use-package lsp-mode
+    :commands (lsp lsp-deffered)
+    :init
+    (setq lsp-keymap-prefix "C-c l")
+
+    :config
+    (lsp-enable-which-key-integration t))
 
   (use-package lsp-ui
     :hook (lsp-mode . lsp-ui-mode)
@@ -723,13 +727,13 @@ Surprised how well this is integrated. You just need two packages
 
 *** dart-modbe
 #+begin_src emacs-lisp
-            (use-package dart-mode
-              :hook (dart-mode . lsp))
-            (use-package lsp-dart
-              :init
-              (setq lsp-dart-sdk-dir "/Users/100phlecs/packages/flutter/bin/cache/dart-sdk")
-              (setq lsp-dart-flutter-sdk-dir "/Users/100phlecs/packages/flutter")
-              (setq lsp-dart-enable-sdk-formatter t))
+  (use-package dart-mode
+    :hook (dart-mode . lsp))
+  (use-package lsp-dart
+    :init
+    (setq lsp-dart-sdk-dir "/Users/100phlecs/packages/flutter/bin/cache/dart-sdk")
+    (setq lsp-dart-flutter-sdk-dir "/Users/100phlecs/packages/flutter")
+    (setq lsp-dart-enable-sdk-formatter t))
 #+end_src
 
 * Diagnostics
@@ -742,8 +746,7 @@ up less. This is also a catch category for emacs shenanigans
 #+begin_src emacs-lisp
   (use-package esup
     :config
-    (setq esup-depth 0)
-    )
+    (setq esup-depth 0))
 #+end_src
 
 ** [[https://activitywatch.net/][ActivityWatch]]
@@ -777,7 +780,6 @@ Using [[https://github.com/TatriX/pomidor/][pomidor]], quite nice.
   (setq gc-cons-threshold (* 2 1000 1000))
 #+end_src
 
-** TODO add sound for pomodoro
 * Resources
 I was only able to follow a path of least resistance by following
 [[https://github.com/daviwil/emacs-from-scratch/][Emacs from Scratch]]. Do check SystemCrafter's [[https://systemcrafters.net/emacs-from-scratch/][wiki page]] for information
