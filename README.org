@@ -334,7 +334,6 @@ Autocompletion is smart for any sort of typing, isn't it? So I enable
     (company-minimum-prefix-length 1)
     (company-idle-delay 0.0))
   
-    (global-set-key (kbd "C-:") #'ispell)
 #+end_src
 
 ** [[https://github.com/joaotavora/yasnippet][yasnippet]]
@@ -627,18 +626,20 @@ Command info as well as keybinding for minibuffer
 
   ;; Enable richer annotations using the Marginalia package
   (use-package marginalia
-    ;; Either bind `marginalia-cycle` globally or only in the minibuffer
-    :bind (("M-A" . marginalia-cycle)
-           :map minibuffer-local-map
-           ("M-A" . marginalia-cycle))
-
-    ;; The :init configuration is always executed (Not lazy!)
     :init
-
-    ;; Must be in the :init section of use-package such that the mode gets
-    ;; enabled right away. Note that this forces loading the package.
     (marginalia-mode))
 #+end_src
+
+*** [[https://github.com/oantolin/embark][Embark]] & [[https://github.com/abo-abo/avy][Avy]]
+Just adding this in since it is often paired with the others.
+#+begin_src emacs-lisp
+    (use-package embark
+      :bind (("M-o" . embark-act)
+             ("M-C-o" . embark-export)))
+    (use-package avy
+      :bind (("C-:" . avy-goto-char)))
+#+end_src
+
 
 * Org
 The more I use it the more I wonder why I haven't used it before.

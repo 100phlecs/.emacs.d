@@ -151,8 +151,6 @@
   (company-minimum-prefix-length 1)
   (company-idle-delay 0.0))
 
-  (global-set-key (kbd "C-:") #'ispell)
-
 (use-package yasnippet
   :init (yas-global-mode 1))
 (use-package doom-snippets
@@ -387,17 +385,14 @@ folder, otherwise delete a word"
 
 ;; Enable richer annotations using the Marginalia package
 (use-package marginalia
-  ;; Either bind `marginalia-cycle` globally or only in the minibuffer
-  :bind (("M-A" . marginalia-cycle)
-         :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
-
-  ;; The :init configuration is always executed (Not lazy!)
   :init
-
-  ;; Must be in the :init section of use-package such that the mode gets
-  ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
+
+(use-package embark
+  :bind (("M-o" . embark-act)
+         ("M-C-o" . embark-export)))
+(use-package avy
+  :bind (("C-:" . avy-goto-char)))
 
 (defun phl-org-mode-setup ()
   (org-indent-mode)
