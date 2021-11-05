@@ -175,21 +175,59 @@
      (magit-status "Magit" ?m))))
 
 (use-package popper
-  :bind (("C-`"   . popper-toggle-latest)
-         ("M-`"   . popper-cycle)
-         ("C-M-`" . popper-toggle-type))
-  :init
-  (setq popper-reference-buffers
-        '("\\*Messages\\*"
-          "Output\\*$"
-          "\\*Async Shell Command\\*"
-          help-mode
-          compilation-mode))
-  (popper-mode +1)
-  (popper-echo-mode +1))                ; For echo area hints
+    :init
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "\\*pomidor\\*"
+            pomidor-mode
+            "\\*Warnings\\*"
+            "^\\*eshell.*\\*$"
+            eshell-mode
+            helpful-mode
+            help-mode
+            compilation-mode))
+    (popper-mode +1)
+    (popper-echo-mode +1)
+    (defun phl-popper-kill-buffer ()
+      "Kill selected popper buffer without closing popper"
+    (interactive)
+    (popper-kill-latest-popup)
+    (popper-toggle-latest))
+    (defun phl-popper-maximize-buffer ()
+      "Maximize selected popper buffer within frame"
+      (interactive)
+      (popper-toggle-type)
+      (maximize-window))
+:bind (("M-`"   . popper-toggle-latest)
+       ("C-`"   . popper-cycle)
+       ("C-M-`" . popper-toggle-type)
+       ("`" . phl-popper-kill-buffer)
+       ("C-^" . phl-popper-maximize-buffer)
+    )
+)
 
-(use-package vertico)
-    (vertico-mode)
+(use-package vertico
+  :init 
+  (vertico-mode)
+  (defun phl-minibuffer-backward-kill (arg)
+    "When minibuffer is completing a file name delete up to parent
+folder, otherwise delete a word"
+    (interactive "p")
+    (if minibuffer-completing-file-name
+        (if (string-match-p "/." (minibuffer-contents))
+            (zap-up-to-char (- arg) ?/)
+          (delete-minibuffer-contents))
+      (delete-word (- arg))))
+
+  :bind (:map vertico-map
+              ("C-f" . vertico-exit)
+              :map minibuffer-local-map
+              ("M-DEL" . phl-minibuffer-backward-kill))
+  :custom 
+  (vertico-cycle t)
+  (custom-set-faces '(vertico-current ((t (:background "#3a3f5a"))))))
 
 (use-package corfu
 ;; Optional customizations
@@ -217,6 +255,7 @@
 ;; This is recommended since dabbrev can be used globally (M-/).
 :init
 (corfu-global-mode))
+
 (use-package orderless
 :init
 ;; Configure a custom style dispatcher (see the Consult wiki)
@@ -225,124 +264,128 @@
 (setq completion-styles '(orderless)
       completion-category-defaults nil
       completion-category-overrides '((file (styles . (partial-completion))))))
-    ;; Example configuration for Consult
-  (use-package consult
-    ;; Replace bindings. Lazily loaded due by `use-package'.
-    :bind (;; C-c bindings (mode-specific-map)
-           ("C-c h" . consult-history)
-           ("C-c m" . consult-mode-command)
-           ("C-c b" . consult-bookmark)
-           ("C-c k" . consult-kmacro)
-           ;; C-x bindings (ctl-x-map)
-           ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-           ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-           ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-           ;; Custom M-# bindings for fast register access
-           ("M-#" . consult-register-load)
-           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-           ("C-M-#" . consult-register)
-           ;; Other custom bindings
-           ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-           ("<help> a" . consult-apropos)            ;; orig. apropos-command
-           ;; M-g bindings (goto-map)
-           ("M-g e" . consult-compile-error)
-           ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-           ("M-g g" . consult-goto-line)             ;; orig. goto-line
-           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-           ("M-g m" . consult-mark)
-           ("M-g k" . consult-global-mark)
-           ("M-g i" . consult-imenu)
-           ("M-g I" . consult-imenu-multi)
-           ;; M-s bindings (search-map)
-           ("M-s f" . consult-find)
-           ("M-s F" . consult-locate)
-           ("M-s g" . consult-grep)
-           ("M-s G" . consult-git-grep)
-           ("M-s r" . consult-ripgrep)
-           ("C-s"   . consult-line)
-           ("M-s L" . consult-line-multi)
-           ("M-s m" . consult-multi-occur)
-           ("M-s k" . consult-keep-lines)
-           ("M-s u" . consult-focus-lines)
-           ;; Isearch integration
-           ("M-s e" . consult-isearch-history)
-           :map isearch-mode-map
-           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-           ("M-s L" . consult-line-multi))           ;; needed by consult-line to detect isearch
 
-    ;; Enable automatic preview at point in the *Completions* buffer.
-    ;; This is relevant when you use the default completion UI,
-    ;; and not necessary for Vertico, Selectrum, etc.
-    ;;:hook (completion-list-mode . consult-preview-at-point-mode)
+;; Example configuration for Consult
+(use-package consult
+  ;; Replace bindings. Lazily loaded due by `use-package'.
+  :bind (;; C-c bindings (mode-specific-map)
+         ("C-c h" . consult-history)
+         ("C-c m" . consult-mode-command)
+         ("C-c b" . consult-bookmark)
+         ("C-c k" . consult-kmacro)
+         ;; C-x bindings (ctl-x-map)
+         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ("<help> a" . consult-apropos)            ;; orig. apropos-command
+         ;; M-g bindings (goto-map)
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings (search-map)
+         ("M-s f" . consult-find)
+         ("M-s F" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("C-s"   . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s m" . consult-multi-occur)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi))           ;; needed by consult-line to detect isearch
 
-    ;; The :init configuration is always executed (Not lazy)
-    :init
+  ;; Enable automatic preview at point in the *Completions* buffer.
+  ;; This is relevant when you use the default completion UI,
+  ;; and not necessary for Vertico, Selectrum, etc.
+  ;;:hook (completion-list-mode . consult-preview-at-point-mode)
 
-    ;; Optionally configure the register formatting. This improves the register
-    ;; preview for `consult-register', `consult-register-load',
-    ;; `consult-register-store' and the Emacs built-ins.
-    (setq register-preview-delay 0
-          register-preview-function #'consult-register-format)
+  ;; The :init configuration is always executed (Not lazy)
+  :init
 
-    ;; Optionally tweak the register preview window.
-    ;; This adds thin lines, sorting and hides the mode line of the window.
-    (advice-add #'register-preview :override #'consult-register-window)
+  ;; Optionally configure the register formatting. This improves the register
+  ;; preview for `consult-register', `consult-register-load',
+  ;; `consult-register-store' and the Emacs built-ins.
+  (setq register-preview-delay 0
+        register-preview-function #'consult-register-format)
 
-    ;; Optionally replace `completing-read-multiple' with an enhanced version.
-    (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
+  ;; Optionally tweak the register preview window.
+  ;; This adds thin lines, sorting and hides the mode line of the window.
+  (advice-add #'register-preview :override #'consult-register-window)
 
-    ;; Use Consult to select xref locations with preview
-    (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref)
+  ;; Optionally replace `completing-read-multiple' with an enhanced version.
+  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
 
-    ;; Configure other variables and modes in the :config section,
-    ;; after lazily loading the package.
-    :config
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
 
-    ;; Optionally configure preview. The default value
-    ;; is 'any, such that any key triggers the preview.
-    ;; (setq consult-preview-key 'any)
-    ;; (setq consult-preview-key (kbd "M-."))
-    ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
-    ;; For some commands and buffer sources it is useful to configure the
-    ;; :preview-key on a per-command basis using the `consult-customize' macro.
-    (consult-customize
-     consult-theme
-     :preview-key '(:debounce 0.2 any)
-     consult-ripgrep consult-git-grep consult-grep
-     consult-bookmark consult-recent-file consult-xref
-     consult--source-file consult--source-project-file consult--source-bookmark
-     :preview-key (kbd "M-."))
+  ;; Configure other variables and modes in the :config section,
+  ;; after lazily loading the package.
+  :config
 
-    ;; Optionally configure the narrowing key.
-    ;; Both < and C-+ work reasonably well.
-    (setq consult-narrow-key "<") ;; (kbd "C-+")
+  ;; Optionally configure preview. The default value
+  ;; is 'any, such that any key triggers the preview.
+  ;; (setq consult-preview-key 'any)
+  ;; (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
+  ;; For some commands and buffer sources it is useful to configure the
+  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (consult-customize
+   consult-theme
+   :preview-key '(:debounce 0.2 any)
+   consult-ripgrep consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-file consult--source-project-file consult--source-bookmark
+   :preview-key (kbd "M-."))
 
-    ;; Optionally make narrowing help available in the minibuffer.
-    ;; You may want to use `embark-prefix-help-command' or which-key instead.
-    ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+  ;; Optionally configure the narrowing key.
+  ;; Both < and C-+ work reasonably well.
+  (setq consult-narrow-key "<") ;; (kbd "C-+")
 
-    ;; Optionally configure a function which returns the project root directory.
-    ;; There are multiple reasonable alternatives to chose from.
+  ;; Optionally make narrowing help available in the minibuffer.
+  ;; You may want to use `embark-prefix-help-command' or which-key instead.
+  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+  ;; Optionally configure a function which returns the project root directory.
+  ;; There are multiple reasonable alternatives to chose from.
     ;;;; 1. project.el (project-roots)
-    (setq consult-project-root-function
-          (lambda ()
-            (when-let (project (project-current))
-              (car (project-roots project)))))
+  (setq consult-project-root-function
+        (lambda ()
+          (when-let (project (project-current))
+            (car (project-roots project)))))
     ;;;; 2. projectile.el (projectile-project-root)
-    ;; (autoload 'projectile-project-root "projectile")
-    ;; (setq consult-project-root-function #'projectile-project-root)
+  ;; (autoload 'projectile-project-root "projectile")
+  ;; (setq consult-project-root-function #'projectile-project-root)
     ;;;; 3. vc.el (vc-root-dir)
-    ;; (setq consult-project-root-function #'vc-root-dir)
+  ;; (setq consult-project-root-function #'vc-root-dir)
     ;;;; 4. locate-dominating-file
-    ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
+  ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
   )
 
-  ;; Enable richer annotations using the Marginalia package
+(use-package consult-yasnippet
+  :bind ("C-x C-y" . consult-yasnippet))
+
+;; Enable richer annotations using the Marginalia package
 (use-package marginalia
   ;; Either bind `marginalia-cycle` globally or only in the minibuffer
   :bind (("M-A" . marginalia-cycle)
@@ -356,16 +399,13 @@
   ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
 
-(use-package consult-yasnippet
-  :bind ("C-x C-y" . consult-yasnippet))
-
-(defun phl/org-mode-setup ()
+(defun phl-org-mode-setup ()
   (org-indent-mode)
   (auto-fill-mode 1)
   (visual-line-mode 1))
 
 (use-package org
-  :hook (org-mode . phl/org-mode-setup)
+  :hook (org-mode . phl-org-mode-setup)
   :config
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
@@ -397,7 +437,7 @@
   :custom
   (org-roam-directory "~/Documents/ok")
   (org-roam-completion-everywhere t)
-    (defun phl/org-roam-rg ()
+    (defun phl-org-roam-rg ()
     "Search across the content of the root org dir"
     (interactive)
     (consult-ripgrep org-roam-directory))
@@ -407,7 +447,7 @@
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
-         ("C-c n r" . phl/org-roam-rg)
+         ("C-c n r" . phl-org-roam-rg)
            :map org-mode-map
          ("C-M-i" . completion-at-point)
          :map org-roam-dailies-map
@@ -445,14 +485,22 @@
 
 
 ;; Automatically tangle our .org config file when we save it
-(defun phl/org-babel-tangle-config ()
+(defun phl-org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
                       (expand-file-name "~/.emacs.d/README.org"))
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl/org-babel-tangle-config)))
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl-org-babel-tangle-config)))
+
+(defun phl-start-new-eshell ()
+      "Spawn a new eshell "
+    (interactive)
+    (eshell)
+    (rename-uniquely))
+
+(global-set-key (kbd "C-c e") #'phl-start-new-eshell)
 
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
