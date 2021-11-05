@@ -1,34 +1,36 @@
 #+title: 100phlecs of elisp
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
-I tried out emacs about a year and half ago. Then quit after being too
-annoyed configuring things. But then I got more annoyed by how bad
-default configurations are.
 
-If I could travel back and advise what to do to start again, I would
-not look online at all.
+* In retrospect
+I tried out Emacs out of hype only to shortly give up after. Time went
+on, and slowly I found other tools lacking.
 
-Emacs starts with a buffer labeled *GNU EMACS*. Most guides advise to
-disable it immediately! But if I could go back in time, I wouldn't
-disable it. I would read every link. Go through the tutorial, then
-read the manual.
+Emacs starts with the buffer labeled **GNU EMACS**. Most veterans advise
+to disable it immediately! But if I could go back in time, I wouldn't
+disable it. I would read everything it offered.
 
-RTFM and add packages /as you need them/. As in, frame an annoyance and
-look it up. Just start using it. And when you find a grievance, you'll
-find a solution. Just gotta read. You'll be surprised how often Emacs
-ships a solution.
+It would've took some time to read it all of course, which is why I
+didn't do it at the beginning. Who would want to spend an evening
+reading through a four decade old text-editor manual? So I used Google
+to look for shortcuts, which usually worked and saved time... but not
+this time. Google doesn't bake in concepts and keybindings. Only
+effort and patience does.
 
-Also, a theory I have is _keybindings don't matter as much as you think
-they do, if you get the proper packaging_. A keychord learned is a
-keychord learned.
+Anyway, yeah, that would've been nice. To use the manual from the
+get-go. Because I bet if you do, once you're done reading, you'll not
+have any gaps despite being a beginner. Emacs would be yours to
+extend.
 
-For example, [M-^]. Or [M-\]. 
+I would be curious how many users traversed through the entire **GNU
+EMACS** buffer.
 
 * Table of Contents
 :PROPERTIES:
 :TOC:      :include all :depth 3 :force (depth) :ignore (this) :local (depth)
 :END:
 :CONTENTS:
+- [[#in-retrospect][In retrospect]]
 - [[#bootstrapping][Bootstrapping]]
   - [[#starting-up][Starting up]]
   - [[#more-path-loading][More path loading]]
@@ -52,7 +54,6 @@ For example, [M-^]. Or [M-\].
   - [[#buffer-management][buffer management]]
   - [[#search-completion][search completion]]
 - [[#org][Org]]
-  - [[#need-to-clean-this-up][need to clean this up.]]
   - [[#ui-setup][UI Setup]]
   - [[#grab-org-and-its-modules][Grab org and its modules]]
   - [[#org-bullets][org bullets]]
@@ -67,7 +68,6 @@ For example, [M-^]. Or [M-\].
   - [[#esup][ESUP]]
   - [[#activitywatch][ActivityWatch]]
   - [[#pomodoro-technique][Pomodoro Technique]]
-  - [[#add-sound-for-pomodoro][add sound for pomodoro]]
 - [[#resources][Resources]]
 :END:
 
@@ -137,7 +137,7 @@ To 'diminish' a mode is to no longer have it show up in the
 modeline. Useful to remove clutter from the modeline.
 
 #+begin_src emacs-lisp
-(use-package diminish)
+  (use-package diminish)
 #+end_src
 
 * Appearance
@@ -174,7 +174,7 @@ buffers, so we'll disable them.
 #+end_src
 
 ** Font 
-I really enjoy [[https://github.com/be5invis/iosevka][Iosevka]]. The cramped nature of it may be offputting, but
+I really enjoy [[https://github.com/be5invis/iosevka][Iosevka]]. The cramped nature of it may be off-putting, but
 after using it for a couple of weeks I can't use anything else.
 
 Comes with ligatures. Real easy with [[https://github.com/mickeynp/ligature.el][ligature.el]] - they gave me
@@ -242,9 +242,6 @@ Stealing some theme management :~)
 #+end_src
 
 * Discoverability / Navigation
-Always when using emacs you want to find a way to use it more
-effectively. So it's best to get packages that let you move fast and
-find things.
 
 ** [[https://github.com/justbur/emacs-which-key][which key]]
 A little popup that comes after you start a key chord. Super useful,
@@ -345,7 +342,7 @@ use of it.
 #+end_src
 
 ** [[https://github.com/purcell/whole-line-or-region][whole-line-or-region]]
-Quick swapout to make more use of M-w instead of doing C-a C-k C-k
+Quick swap-out to make more use of M-w instead of doing C-a C-k C-k
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
   :straight (whole-line-or-region :type git :host github :repo "purcell/whole-line-or-region" :files ("*.el" "*")))
@@ -469,7 +466,7 @@ So far consult buffer preview is pretty nice.
              ("M-s g" . consult-grep)
              ("M-s G" . consult-git-grep)
              ("M-s r" . consult-ripgrep)
-             ("M-s l" . consult-line)
+             ("C-s"   . consult-line)
              ("M-s L" . consult-line-multi)
              ("M-s m" . consult-multi-occur)
              ("M-s k" . consult-keep-lines)
@@ -614,7 +611,7 @@ The more I use it the more I wonder why I haven't used it before.
 #+end_src
 
 ** org-roam
-Quickest way to become a profilic writer.
+Makes writing easy compared to everything else I've tried.
 #+begin_src emacs-lisp
   (use-package org-roam
     :straight t
@@ -725,7 +722,7 @@ Surprised how well this is integrated. You just need two packages
   (setq flutter-sdk-path "/Users/100phlecs/packages/flutter/"))
 #+end_src
 
-*** dart-modbe
+*** dart-mode
 #+begin_src emacs-lisp
   (use-package dart-mode
     :hook (dart-mode . lsp))

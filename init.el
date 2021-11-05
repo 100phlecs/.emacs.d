@@ -261,7 +261,7 @@
            ("M-s g" . consult-grep)
            ("M-s G" . consult-git-grep)
            ("M-s r" . consult-ripgrep)
-           ("M-s l" . consult-line)
+           ("C-s"   . consult-line)
            ("M-s L" . consult-line-multi)
            ("M-s m" . consult-multi-occur)
            ("M-s k" . consult-keep-lines)
