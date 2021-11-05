@@ -35,9 +35,8 @@
                    gcs-done)))
 
 (use-package exec-path-from-shell
-    :init
-    (exec-path-from-shell-initialize))
-#+end_#+begin_src
+  :init
+  (exec-path-from-shell-initialize))
 
 (use-package diminish)
 
@@ -498,3 +497,4 @@
                           (setq left-margin-width 2 right-margin-width 0)
                           ;; force fringe update
                           (set-window-buffer nil (current-buffer)))))
+(setq gc-cons-threshold (* 2 1000 1000))
