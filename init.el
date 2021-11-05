@@ -79,10 +79,26 @@
   :hook (prog-mode . rainbow-delimiters-mode)
   :diminish rainbow-delimiters-mode)
 
-(use-package solarized-theme)
+(use-package solarized-theme
+:config
+(load-theme 'solarized-gruvbox-light t)
+(let ((line (face-attribute 'mode-line :underline)))
+  (set-face-attribute 'mode-line          nil :overline   line)
+  (set-face-attribute 'mode-line-inactive nil :overline   line)
+  (set-face-attribute 'mode-line-inactive nil :underline  line)
+  (set-face-attribute 'mode-line          nil :box        nil)
+  (set-face-attribute 'mode-line-inactive nil :box        nil)
+  (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9"))
 (setq solarized-use-more-italic t)
-(setq solarized-scale-markdown-headlines t)
-(load-theme 'solarized-gruvbox-light)
+(setq solarized-scale-markdown-headlines t))
+
+(use-package moody
+  :config
+  (setq x-underline-at-descent-line t)
+  (setq moody-mode-line-height 20)
+  (moody-replace-mode-line-buffer-identification)
+  (moody-replace-vc-mode)
+  (moody-replace-eldoc-minibuffer-message-function))
 
 (use-package which-key
   :init (which-key-mode)
@@ -158,6 +174,20 @@
      (project-vc-dir "VC-Dir" nil)
      (project-eshell "Eshell" nil)
      (magit-status "Magit" ?m))))
+
+(use-package popper
+  :bind (("C-`"   . popper-toggle-latest)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compilation-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))                ; For echo area hints
 
 (use-package vertico)
     (vertico-mode)

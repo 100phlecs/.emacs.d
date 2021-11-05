@@ -8,7 +8,7 @@ default configurations are.
 If I could travel back and advise what to do to start again, I would
 not look online at all.
 
-Emacs starts with a buffer called *GNU EMACS*. Most guides advise to
+Emacs starts with a buffer labeled *GNU EMACS*. Most guides advise to
 disable it immediately! But if I could go back in time, I wouldn't
 disable it. I would read every link. Go through the tutorial, then
 read the manual.
@@ -17,6 +17,12 @@ RTFM and add packages /as you need them/. As in, frame an annoyance and
 look it up. Just start using it. And when you find a grievance, you'll
 find a solution. Just gotta read. You'll be surprised how often Emacs
 ships a solution.
+
+Also, a theory I have is _keybindings don't matter as much as you think
+they do, if you get the proper packaging_. A keychord learned is a
+keychord learned.
+
+For example, [M-^]. Or [M-\]. 
 
 * Table of Contents
 :PROPERTIES:
@@ -32,6 +38,7 @@ ships a solution.
   - [[#font][Font]]
   - [[#rainbow-parenthesescurlies][Rainbow Parentheses/Curlies]]
   - [[#theme---solarized][Theme - Solarized]]
+  - [[#moody][moody]]
 - [[#discoverability--navigation][Discoverability / Navigation]]
   - [[#which-key][which key]]
   - [[#its-magit][It's magit!]]
@@ -42,6 +49,7 @@ ships a solution.
   - [[#yasnippet][yasnippet]]
   - [[#whole-line-or-region][whole-line-or-region]]
   - [[#project-management][project management]]
+  - [[#buffer-management][buffer management]]
   - [[#search-completion][search completion]]
 - [[#org][Org]]
   - [[#need-to-clean-this-up][need to clean this up.]]
@@ -210,10 +218,30 @@ themescape to be the one that just works.
 Trying out a subset of it.
 
 #+begin_src emacs-lisp
-(use-package solarized-theme)
-(setq solarized-use-more-italic t)
-(setq solarized-scale-markdown-headlines t)
-(load-theme 'solarized-gruvbox-light)
+  (use-package solarized-theme
+  :config
+  (load-theme 'solarized-gruvbox-light t)
+  (let ((line (face-attribute 'mode-line :underline)))
+    (set-face-attribute 'mode-line          nil :overline   line)
+    (set-face-attribute 'mode-line-inactive nil :overline   line)
+    (set-face-attribute 'mode-line-inactive nil :underline  line)
+    (set-face-attribute 'mode-line          nil :box        nil)
+    (set-face-attribute 'mode-line-inactive nil :box        nil)
+    (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9"))
+  (setq solarized-use-more-italic t)
+  (setq solarized-scale-markdown-headlines t))
+  
+#+end_src
+** [[https://github.com/tarsius/moody][moody]]
+Stealing some theme management :~)
+#+begin_src emacs-lisp
+  (use-package moody
+    :config
+    (setq x-underline-at-descent-line t)
+    (setq moody-mode-line-height 20)
+    (moody-replace-mode-line-buffer-identification)
+    (moody-replace-vc-mode)
+    (moody-replace-eldoc-minibuffer-message-function))
 #+end_src
 
 * Discoverability / Navigation
@@ -342,6 +370,24 @@ much to say about it at this point.
        (project-eshell "Eshell" nil)
        (magit-status "Magit" ?m))))
 
+#+end_src
+
+** buffer management
+Having trouble with context management, thinking this may help.
+#+begin_src emacs-lisp
+(use-package popper
+  :bind (("C-`"   . popper-toggle-latest)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compilation-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))                ; For echo area hints
 #+end_src
 
 ** search completion
