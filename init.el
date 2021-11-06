@@ -110,7 +110,15 @@
   :bind(
   ("C-=" . er/expand-region)))
 
+(defun phl-kill-this-buffer-and-close-window ()
+  "Kill the active buffer and then close active window."
+  (interactive)
+  (kill-this-buffer)
+  (delete-window))
+
 (global-set-key (kbd "C-x M-k") #'kill-this-buffer)
+(global-set-key (kbd "C-x k") #'phl-kill-this-buffer-and-close-window)
+(global-set-key (kbd "C-x M-K") #'kill-buffer)
 (global-set-key (kbd "C-c s") #'ispell)
 
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -186,6 +194,7 @@
             "Output\\*$"
             "\\*Async Shell Command\\*"
             "\\*pomidor\\*"
+            "\\*Backtrace\\*"
             pomidor-mode
             "\\*Warnings\\*"
             "^\\*eshell.*\\*$"

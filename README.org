@@ -284,7 +284,15 @@ cycle isn't a good use case for this
 Need a place to drop some custom keys 
 
 #+begin_src emacs-lisp
+  (defun phl-kill-this-buffer-and-close-window ()
+    "Kill the active buffer and then close active window."
+    (interactive)
+    (kill-this-buffer)
+    (delete-window))
+
   (global-set-key (kbd "C-x M-k") #'kill-this-buffer)
+  (global-set-key (kbd "C-x k") #'phl-kill-this-buffer-and-close-window)
+  (global-set-key (kbd "C-x M-K") #'kill-buffer)
   (global-set-key (kbd "C-c s") #'ispell)
 #+end_src
 
@@ -402,6 +410,7 @@ Excellent way to manage minor buffers!
               "Output\\*$"
               "\\*Async Shell Command\\*"
               "\\*pomidor\\*"
+              "\\*Backtrace\\*"
               pomidor-mode
               "\\*Warnings\\*"
               "^\\*eshell.*\\*$"
