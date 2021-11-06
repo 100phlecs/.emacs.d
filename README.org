@@ -43,6 +43,7 @@ EMACS** buffer.
 - [[#discoverability--navigation][Discoverability / Navigation]]
   - [[#which-key][which key]]
   - [[#its-magit][It's magit!]]
+  - [[#keybindings][keybindings]]
   - [[#yes-or-no---y-or-n][yes-or-no -> y-or-n]]
   - [[#hydra][hydra]]
   - [[#helpful][helpful]]
@@ -57,6 +58,7 @@ EMACS** buffer.
     - [[#orderless][Orderless]]
     - [[#consult][Consult]]
     - [[#marginalia][Marginalia]]
+    - [[#embark--avy][Embark & Avy]]
 - [[#org][Org]]
   - [[#ui-setup][UI Setup]]
   - [[#grab-org-and-its-modules][Grab org and its modules]]
@@ -268,6 +270,14 @@ Getting used to it, a lot nicer than grabbing a terminal, that's for sure.
 (use-package magit)
 #+end_src
 
+** keybindings
+Need a place to drop some custom keys 
+
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-x M-k") #'kill-this-buffer)
+
+#+end_src
+
 ** yes-or-no -> y-or-n
 Quicker confirmations
 
@@ -373,7 +383,7 @@ much to say about it at this point.
 #+end_src
 
 ** [[https://github.com/karthink/popper][buffer management]]
-Excellent way to manage buffers!
+Excellent way to manage minor buffers!
 #+begin_src emacs-lisp
     (use-package popper
       :init
@@ -386,18 +396,23 @@ Excellent way to manage buffers!
               "\\*Warnings\\*"
               "^\\*eshell.*\\*$"
               eshell-mode
+              flutter-mode
               helpful-mode
               help-mode
               compilation-mode))
       (popper-mode +1)
       (popper-echo-mode +1)
+      (setq popper-echo-dispatch-keys
+            '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
+
       (defun phl-popper-kill-buffer ()
-        "Kill selected popper buffer without closing popper"
+        "Kill selected popper buffer without closing popper."
       (interactive)
       (popper-kill-latest-popup)
       (popper-toggle-latest))
+
       (defun phl-popper-maximize-buffer ()
-        "Maximize selected popper buffer within frame"
+        "Maximize selected popper buffer within frame."
         (interactive)
         (popper-toggle-type)
         (maximize-window))
@@ -425,7 +440,7 @@ vertical completion in command searching
     (vertico-mode)
     (defun phl-minibuffer-backward-kill (arg)
       "When minibuffer is completing a file name delete up to parent
-  folder, otherwise delete a word"
+  folder, otherwise delete a word."
       (interactive "p")
       (if minibuffer-completing-file-name
           (if (string-match-p "/." (minibuffer-contents))
@@ -534,7 +549,7 @@ improved interfacing with emacs
            ("M-s g" . consult-grep)
            ("M-s G" . consult-git-grep)
            ("M-s r" . consult-ripgrep)
-           ("C-s"   . consult-line)
+           ("M-s l"   . consult-line)
            ("M-s L" . consult-line-multi)
            ("M-s m" . consult-multi-occur)
            ("M-s k" . consult-keep-lines)
@@ -632,12 +647,76 @@ Command info as well as keybinding for minibuffer
 
 *** [[https://github.com/oantolin/embark][Embark]] & [[https://github.com/abo-abo/avy][Avy]]
 Just adding this in since it is often paired with the others.
+Okay, this is getting to be pretty weird. Maybe I'll use this after all.
 #+begin_src emacs-lisp
-    (use-package embark
-      :bind (("M-o" . embark-act)
-             ("M-C-o" . embark-export)))
-    (use-package avy
-      :bind (("C-:" . avy-goto-char)))
+  (use-package embark
+    :bind (("M-o" . embark-act)
+           ("M-C-o" . embark-export))
+    :config
+    (setq embark-cycle-key (kbd "O")))
+  (use-package avy
+    :bind (("C-;" . avy-goto-char-timer)
+           ("C-:" . avy-isearch)))
+
+  (defun avy-action-embark (pt)
+    (unwind-protect
+        (save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+  (defun avy-action-helpful (pt)
+    (save-excursion
+      (goto-char pt)
+      (helpful-at-point))
+    (select-window
+     (cdr (ring-ref avy-ring 0)))
+    t)
+  (defun avy-action-mark-to-char (pt)
+    (activate-mark)
+    (goto-char pt))
+
+  (defun avy-action-copy-whole-line (pt)
+    (save-excursion
+      (goto-char pt)
+      (cl-destructuring-bind (start . end)
+          (bounds-of-thing-at-point 'line)
+        (copy-region-as-kill start end)))
+    (select-window
+     (cdr
+      (ring-ref avy-ring 0)))
+    t)
+
+  (defun avy-action-yank-whole-line (pt)
+    (avy-action-copy-whole-line pt)
+    (save-excursion (yank))
+    t)
+
+  (defun avy-action-kill-whole-line (pt)
+    (save-excursion
+      (goto-char pt)
+      (kill-whole-line))
+    (select-window
+     (cdr
+      (ring-ref avy-ring 0)))
+    t)
+  (defun avy-action-teleport-whole-line (pt)
+    (avy-action-kill-whole-line pt)
+    (save-excursion (yank)) t)
+
+  (setf (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
+        (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line)
+  (setf (alist-get ?k avy-dispatch-alist) 'avy-action-kill-stay
+        (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line)
+  (setf (alist-get ?y avy-dispatch-alist) 'avy-action-yank
+        (alist-get ?w avy-dispatch-alist) 'avy-action-copy
+        (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
+        (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line)
+  (setf (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char)
+  (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful)
+  (setf (alist-get ?o avy-dispatch-alist) 'avy-action-embark)
+
 #+end_src
 
 
@@ -696,7 +775,7 @@ Makes writing easy compared to everything else I've tried.
     (org-roam-directory "~/Documents/ok")
     (org-roam-completion-everywhere t)
       (defun phl-org-roam-rg ()
-      "Search across the content of the root org dir"
+      "Search across the content of the root org dir."
       (interactive)
       (consult-ripgrep org-roam-directory))
     (org-roam-dailies-capture-templates
@@ -772,7 +851,7 @@ We can just autogenerate it with this snippet.
 It just works.
 #+begin_src emacs-lisp
       (defun phl-start-new-eshell ()
-        "Spawn a new eshell "
+        "Spawn a new eshell always."
       (interactive)
       (eshell)
       (rename-uniquely))

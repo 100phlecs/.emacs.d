@@ -106,6 +106,8 @@
 
 (use-package magit)
 
+(global-set-key (kbd "C-x M-k") #'kill-this-buffer)
+
 (fset 'yes-or-no-p 'y-or-n-p)
 
 (use-package hydra)
@@ -183,18 +185,23 @@
             "\\*Warnings\\*"
             "^\\*eshell.*\\*$"
             eshell-mode
+            flutter-mode
             helpful-mode
             help-mode
             compilation-mode))
     (popper-mode +1)
     (popper-echo-mode +1)
+    (setq popper-echo-dispatch-keys
+          '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
+
     (defun phl-popper-kill-buffer ()
-      "Kill selected popper buffer without closing popper"
+      "Kill selected popper buffer without closing popper."
     (interactive)
     (popper-kill-latest-popup)
     (popper-toggle-latest))
+
     (defun phl-popper-maximize-buffer ()
-      "Maximize selected popper buffer within frame"
+      "Maximize selected popper buffer within frame."
       (interactive)
       (popper-toggle-type)
       (maximize-window))
@@ -211,7 +218,7 @@
   (vertico-mode)
   (defun phl-minibuffer-backward-kill (arg)
     "When minibuffer is completing a file name delete up to parent
-folder, otherwise delete a word"
+folder, otherwise delete a word."
     (interactive "p")
     (if minibuffer-completing-file-name
         (if (string-match-p "/." (minibuffer-contents))
@@ -299,7 +306,7 @@ folder, otherwise delete a word"
          ("M-s g" . consult-grep)
          ("M-s G" . consult-git-grep)
          ("M-s r" . consult-ripgrep)
-         ("C-s"   . consult-line)
+         ("M-s l"   . consult-line)
          ("M-s L" . consult-line-multi)
          ("M-s m" . consult-multi-occur)
          ("M-s k" . consult-keep-lines)
@@ -390,9 +397,71 @@ folder, otherwise delete a word"
 
 (use-package embark
   :bind (("M-o" . embark-act)
-         ("M-C-o" . embark-export)))
+         ("M-C-o" . embark-export))
+  :config
+  (setq embark-cycle-key (kbd "O")))
 (use-package avy
-  :bind (("C-:" . avy-goto-char)))
+  :bind (("C-;" . avy-goto-char-timer)
+         ("C-:" . avy-isearch)))
+
+(defun avy-action-embark (pt)
+  (unwind-protect
+      (save-excursion
+        (goto-char pt)
+        (embark-act))
+    (select-window
+     (cdr (ring-ref avy-ring 0))))
+  t)
+(defun avy-action-helpful (pt)
+  (save-excursion
+    (goto-char pt)
+    (helpful-at-point))
+  (select-window
+   (cdr (ring-ref avy-ring 0)))
+  t)
+(defun avy-action-mark-to-char (pt)
+  (activate-mark)
+  (goto-char pt))
+
+(defun avy-action-copy-whole-line (pt)
+  (save-excursion
+    (goto-char pt)
+    (cl-destructuring-bind (start . end)
+        (bounds-of-thing-at-point 'line)
+      (copy-region-as-kill start end)))
+  (select-window
+   (cdr
+    (ring-ref avy-ring 0)))
+  t)
+
+(defun avy-action-yank-whole-line (pt)
+  (avy-action-copy-whole-line pt)
+  (save-excursion (yank))
+  t)
+
+(defun avy-action-kill-whole-line (pt)
+  (save-excursion
+    (goto-char pt)
+    (kill-whole-line))
+  (select-window
+   (cdr
+    (ring-ref avy-ring 0)))
+  t)
+(defun avy-action-teleport-whole-line (pt)
+  (avy-action-kill-whole-line pt)
+  (save-excursion (yank)) t)
+
+(setf (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
+      (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line)
+(setf (alist-get ?k avy-dispatch-alist) 'avy-action-kill-stay
+      (alist-get ?K avy-dispatch-alist) 'avy-action-kill-whole-line)
+(setf (alist-get ?y avy-dispatch-alist) 'avy-action-yank
+      (alist-get ?w avy-dispatch-alist) 'avy-action-copy
+      (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
+      (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line)
+(setf (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char)
+(setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful)
+(setf (alist-get ?o avy-dispatch-alist) 'avy-action-embark)
 
 (defun phl-org-mode-setup ()
   (org-indent-mode)
@@ -433,7 +502,7 @@ folder, otherwise delete a word"
   (org-roam-directory "~/Documents/ok")
   (org-roam-completion-everywhere t)
     (defun phl-org-roam-rg ()
-    "Search across the content of the root org dir"
+    "Search across the content of the root org dir."
     (interactive)
     (consult-ripgrep org-roam-directory))
   (org-roam-dailies-capture-templates
@@ -490,7 +559,7 @@ folder, otherwise delete a word"
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl-org-babel-tangle-config)))
 
 (defun phl-start-new-eshell ()
-      "Spawn a new eshell "
+      "Spawn a new eshell always."
     (interactive)
     (eshell)
     (rename-uniquely))
