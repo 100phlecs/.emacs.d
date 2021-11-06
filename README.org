@@ -43,6 +43,7 @@ EMACS** buffer.
 - [[#discoverability--navigation][Discoverability / Navigation]]
   - [[#which-key][which key]]
   - [[#its-magit][It's magit!]]
+  - [[#expand-region][expand region]]
   - [[#keybindings][keybindings]]
   - [[#yes-or-no---y-or-n][yes-or-no -> y-or-n]]
   - [[#hydra][hydra]]
@@ -270,12 +271,21 @@ Getting used to it, a lot nicer than grabbing a terminal, that's for sure.
 (use-package magit)
 #+end_src
 
+** expand region
+Easy way to select what you want, mostly use it for removing chars
+within quotes. Maybe I don't need it. But it seems like the embark
+cycle isn't a good use case for this
+#+begin_src emacs-lisp
+    (use-package expand-region
+      :bind(
+      ("C-=" . er/expand-region)))
+#+end_src
 ** keybindings
 Need a place to drop some custom keys 
 
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-x M-k") #'kill-this-buffer)
-
+  (global-set-key (kbd "C-c s") #'ispell)
 #+end_src
 
 ** yes-or-no -> y-or-n
@@ -647,7 +657,7 @@ Command info as well as keybinding for minibuffer
 
 *** [[https://github.com/oantolin/embark][Embark]] & [[https://github.com/abo-abo/avy][Avy]]
 Just adding this in since it is often paired with the others.
-Okay, this is getting to be pretty weird. Maybe I'll use this after all.
+Trying out some embark+avy combinations too.
 #+begin_src emacs-lisp
   (use-package embark
     :bind (("M-o" . embark-act)
@@ -655,6 +665,7 @@ Okay, this is getting to be pretty weird. Maybe I'll use this after all.
     :config
     (setq embark-cycle-key (kbd "O")))
   (use-package avy
+    :demand
     :bind (("C-;" . avy-goto-char-timer)
            ("C-:" . avy-isearch)))
 

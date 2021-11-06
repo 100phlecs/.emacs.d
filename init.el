@@ -106,7 +106,12 @@
 
 (use-package magit)
 
+(use-package expand-region
+  :bind(
+  ("C-=" . er/expand-region)))
+
 (global-set-key (kbd "C-x M-k") #'kill-this-buffer)
+(global-set-key (kbd "C-c s") #'ispell)
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -401,6 +406,7 @@ folder, otherwise delete a word."
   :config
   (setq embark-cycle-key (kbd "O")))
 (use-package avy
+  :demand
   :bind (("C-;" . avy-goto-char-timer)
          ("C-:" . avy-isearch)))
 
