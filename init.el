@@ -713,6 +713,16 @@ folder, otherwise delete a word."
 (use-package sly)
 (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
 
+(use-package parinfer
+  :init
+  (setq parinfer-extensions
+        '(defaults                 ; should be included.
+          pretty-parens           ; different paren styles for different modes.
+          smart-tab               ; C-b & C-f jump positions and smart shift with tab & S-tab.
+          smart-yank)))            ; Yank behavior depend on mode
+
+(global-set-key (kbd "C-c t") #'parinfer-toggle-mode)
+
 (use-package esup
   :config
   (setq esup-depth 0))
