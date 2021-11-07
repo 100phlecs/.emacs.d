@@ -74,26 +74,42 @@
   :hook (prog-mode . rainbow-delimiters-mode)
   :diminish rainbow-delimiters-mode)
 
-(use-package solarized-theme
-:config
-(load-theme 'solarized-gruvbox-light t)
-(let ((line (face-attribute 'mode-line :underline)))
-  (set-face-attribute 'mode-line          nil :overline   line)
-  (set-face-attribute 'mode-line-inactive nil :overline   line)
-  (set-face-attribute 'mode-line-inactive nil :underline  line)
-  (set-face-attribute 'mode-line          nil :box        nil)
-  (set-face-attribute 'mode-line-inactive nil :box        nil)
-  (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9"))
-(setq solarized-use-more-italic t)
-(setq solarized-scale-markdown-headlines t))
-
 (use-package moody
   :config
   (setq x-underline-at-descent-line t)
-  (setq moody-mode-line-height 20)
+  (setq moody-mode-line-height 24)
   (moody-replace-mode-line-buffer-identification)
   (moody-replace-vc-mode)
   (moody-replace-eldoc-minibuffer-message-function))
+
+(use-package solarized-theme
+  :after moody
+  :config
+
+  ;;      (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9")
+  (setq solarized-use-more-italic t)
+  (setq solarized-scale-markdown-headlines t))
+
+
+(defun phl-apply-theme (appearance)
+  "Load theme, taking current system APPEARANCE into consideration."
+  (mapc #'disable-theme custom-enabled-themes)
+
+
+  (pcase appearance
+    ('light (load-theme 'solarized-gruvbox-light t))
+    ('dark (load-theme 'solarized-dark t)))
+
+  (setq moody-line (face-attribute 'mode-line :underline))
+  (set-face-attribute 'mode-line          nil :overline   moody-line)
+  (set-face-attribute 'mode-line-inactive nil :overline   moody-line)
+  (set-face-attribute 'mode-line-inactive nil :underline  moody-line)
+  (set-face-attribute 'mode-line          nil :box        nil)
+  (set-face-attribute 'mode-line-inactive nil :box        nil)
+  )
+
+
+(add-hook 'ns-system-appearance-change-functions #'phl-apply-theme)
 
 (use-package which-key
   :init (which-key-mode)
@@ -243,33 +259,6 @@ folder, otherwise delete a word."
   :custom 
   (vertico-cycle t)
   (custom-set-faces '(vertico-current ((t (:background "#3a3f5a"))))))
-
-(use-package corfu
-;; Optional customizations
-;; :custom
-;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-;; (corfu-auto t)                 ;; Enable auto completion
-;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
-;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
-;; (corfu-quit-no-match t)        ;; Automatically quit if there is no match
-;; (corfu-echo-documentation nil) ;; Do not show documentation in the echo area
-
-;; Optionally use TAB for cycling, default is `corfu-complete'.
-;; :bind (:map corfu-map
-;;        ("TAB" . corfu-next)
-;;        ([tab] . corfu-next)
-;;        ("S-TAB" . corfu-previous)
-;;        ([backtab] . corfu-previous))
-
-;; You may want to enable Corfu only for certain modes.
-;; :hook ((prog-mode . corfu-mode)
-;;        (shell-mode . corfu-mode)
-;;        (eshell-mode . corfu-mode))
-
-;; Recommended: Enable Corfu globally.
-;; This is recommended since dabbrev can be used globally (M-/).
-:init
-(corfu-global-mode))
 
 (use-package orderless
 :init
@@ -485,7 +474,6 @@ folder, otherwise delete a word."
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
-  (setq org-agenda-files '("~/Documents/notes/agenda/Tasks.org" "~/Documents/notes/agenda/Habits.org"))
   (setq org-ellipsis " ⤵"
 	org-hide-emphasis-markers t)
   (setq org-todo-keywords
@@ -587,99 +575,105 @@ folder, otherwise delete a word."
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl-org-babel-tangle-config)))
 
 (defun phl-org-roam-filter-by-tag (tag-name)
-        (lambda (node)
-          (member tag-name (org-roam-node-tags node))))
+  (lambda (node)
+    (member tag-name (org-roam-node-tags node))))
 
-      (defun phl-org-roam-list-notes-by-tag (tag-name)
-        (mapcar #'org-roam-node-file
-                (seq-filter
-                 (phl-org-roam-filter-by-tag tag-name)
-                 (org-roam-node-list))))
+(defun phl-org-roam-list-notes-by-tag (tag-name)
+  (mapcar #'org-roam-node-file
+          (seq-filter
+           (phl-org-roam-filter-by-tag tag-name)
+           (org-roam-node-list))))
 
-      (defun phl-org-roam-refresh-agenda-list ()
-        (interactive)
-        (setq org-agenda-files (phl-org-roam-list-notes-by-tag "Project")))
+(defun phl-org-roam-refresh-agenda-list ()
+  (interactive)
+  (setq org-agenda-files (append (phl-org-roam-list-notes-by-tag "Project")
+                                 '("~/Documents/notes/agenda/Tasks.org"
+                                   "~/Documents/notes/agenda/Habits.org"))
+        )
+  )
 
-      ;; Build the agenda list the first time for the session
-      (phl-org-roam-refresh-agenda-list)
+;; Build the agenda list the first time for the session
+(phl-org-roam-refresh-agenda-list)
 
-      (defun phl-org-roam-project-finalize-hook ()
-        "Adds the captured project file to `org-agenda-files' if the
-      capture was not aborted."
-        ;; Remove the hook since it was added temporarily
-        (remove-hook 'org-capture-after-finalize-hook #'phl-org-roam-project-finalize-hook)
+(defun phl-org-roam-project-finalize-hook ()
+  "Adds the captured project file to `org-agenda-files' if the
+         capture was not aborted."
+  ;; Remove the hook since it was added temporarily
+  (remove-hook 'org-capture-after-finalize-hook #'phl-org-roam-project-finalize-hook)
 
-        ;; Add project file to the agenda list if the capture was confirmed
-        (unless org-note-abort
-          (with-current-buffer (org-capture-get :buffer)
-            (add-to-list 'org-agenda-files (buffer-file-name)))))
+  ;; Add project file to the agenda list if the capture was confirmed
+  (unless org-note-abort
+    (with-current-buffer (org-capture-get :buffer)
+      (add-to-list 'org-agenda-files (buffer-file-name)))))
 
-      (defun phl-org-roam-find-project ()
-        (interactive)
-        ;; Add the project file to the agenda after capture is finished
-        (add-hook 'org-capture-after-finalize-hook #'phl-org-roam-project-finalize-hook)
+(defun phl-org-roam-find-project ()
+  (interactive)
+  ;; Add the project file to the agenda after capture is finished
+  (add-hook 'org-capture-after-finalize-hook #'phl-org-roam-project-finalize-hook)
 
-        ;; Select a project file to open, creating it if necessary
-        (org-roam-node-find
-         nil
-         nil
-         (phl-org-roam-filter-by-tag "Project")
-         :templates
-         '(("p" "project" plain "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
-            :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
-            :unnarrowed t))))
+  ;; Select a project file to open, creating it if necessary
+  (org-roam-node-find
+   nil
+   nil
+   (phl-org-roam-filter-by-tag "Project")
+   :templates
+   '(("p" "project" plain "* Goals\n\n%?\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+category: ${title}\n#+filetags: Project")
+      :unnarrowed t))))
 
-      (defun phl-org-roam-capture-inbox ()
-        (interactive)
-        (org-roam-capture- :node (org-roam-node-create)
-                           :templates '(("i" "inbox" plain "* %?"
-                                        :if-new (file+head "Inbox.org" "#+title: Inbox\n")))))
+(defun phl-org-roam-capture-inbox ()
+  (interactive)
+  (org-roam-capture- :node (org-roam-node-create)
+                     :templates '(("i" "inbox" plain "* %?"
+                                   :if-new (file+head "Inbox.org" "#+title: Inbox\n")))))
 
-      (defun phl-org-roam-capture-task ()
-        (interactive)
-        ;; Add the project file to the agenda after capture is finished
-        (add-hook 'org-capture-after-finalize-hook #'phl-org-roam-project-finalize-hook)
+(defun phl-org-roam-capture-project-task ()
+  (interactive)
+  ;; Add the project file to the agenda after capture is finished
+  (add-hook 'org-capture-after-finalize-hook #'phl-org-roam-project-finalize-hook)
 
-        ;; Capture the new task, creating the project file if necessary
-        (org-roam-capture- :node (org-roam-node-read
-                                  nil
-                                  (phl-org-roam-filter-by-tag "Project"))
-                           :templates '(("p" "project" plain "** TODO %?"
-                                         :if-new (file+head+olp "%<%Y%m%d%H%M%S>-${slug}.org"
-                                                                "#+title: ${title}\n#+category: ${title}\n#+filetags: Project"
-                                                                ("Tasks"))))))
+  ;; Capture the new task, creating the project file if necessary
+  (org-roam-capture- :node (org-roam-node-read
+                            nil
+                            (phl-org-roam-filter-by-tag "Project"))
+                     :templates '(("p" "project" plain "** TODO %?"
+                                   :if-new (file+head+olp "%<%Y%m%d%H%M%S>-${slug}.org"
+                                                          "#+title: ${title}\n#+category: ${title}\n#+filetags: Project"
+                                                          ("Tasks"))))))
 
-      (defun phl-org-roam-copy-todo-to-today ()
-        (interactive)
-        (let ((org-refile-keep t) ;; Set this to nil to delete the original!
-              (org-roam-dailies-capture-templates
-                '(("t" "tasks" entry "%?"
-                   :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n" ("Tasks")))))
-              (org-after-refile-insert-hook #'save-buffer)
-              today-file
-              pos)
-          (save-window-excursion
-            (org-roam-dailies--capture (current-time) t)
-            (setq today-file (buffer-file-name))
-            (setq pos (point)))
+(defun phl-org-roam-copy-todo-to-today ()
+  (interactive)
+  (let ((org-refile-keep t) ;; Set this to nil to delete the original!
+        (org-roam-dailies-capture-templates
+         '(("t" "tasks" entry "%?"
+            :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n" ("Tasks")))))
+        (org-after-refile-insert-hook #'save-buffer)
+        today-file
+        pos)
+    (save-window-excursion
+      (org-roam-dailies--capture (current-time) t)
+      (setq today-file (buffer-file-name))
+      (setq pos (point)))
 
-          ;; Only refile if the target file is different than the current file
-          (unless (equal (file-truename today-file)
-                         (file-truename (buffer-file-name)))
-            (org-refile nil nil (list "Tasks" today-file nil pos)))))
+    ;; Only refile if the target file is different than the current file
+    (unless (equal (file-truename today-file)
+                   (file-truename (buffer-file-name)))
+      (org-refile nil nil (list "Tasks" today-file nil pos)))))
 
-      (add-to-list 'org-after-todo-state-change-hook
-                   (lambda ()
-                     (when (equal org-state "DONE")
-                       (phl-org-roam-copy-todo-to-today))))
+(add-to-list 'org-after-todo-state-change-hook
+             (lambda ()
+               (when (equal org-state "DONE")
+                 (phl-org-roam-copy-todo-to-today))))
 
-        (global-set-key (kbd "C-c n t") #'phl-org-roam-capture-task)
+(global-set-key (kbd "C-c n t") #'phl-org-roam-capture-task)
+(global-set-key (kbd "C-c n n") #'phl-org-roam-capture-inbox)
+(global-set-key (kbd "C-c n p") #' phl-org-roam-find-project)
 
 (defun phl-start-new-eshell ()
-      "Spawn a new eshell always."
-    (interactive)
-    (eshell)
-    (rename-uniquely))
+  "Spawn a new eshell always."
+  (interactive)
+  (eshell)
+  (rename-uniquely))
 
 (global-set-key (kbd "C-c e") #'phl-start-new-eshell)
 
@@ -705,11 +699,19 @@ folder, otherwise delete a word."
 
 (use-package dart-mode
   :hook (dart-mode . lsp))
+
+;; UI and such, sine they're dependences of lsp-dart
+(use-package flycheck)
+(use-package treemacs)
+(use-package lsp-treemacs)
 (use-package lsp-dart
   :init
   (setq lsp-dart-sdk-dir "/Users/100phlecs/packages/flutter/bin/cache/dart-sdk")
   (setq lsp-dart-flutter-sdk-dir "/Users/100phlecs/packages/flutter")
   (setq lsp-dart-enable-sdk-formatter t))
+
+(use-package sly)
+(setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
 
 (use-package esup
   :config
