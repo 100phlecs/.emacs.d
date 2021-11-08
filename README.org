@@ -1049,31 +1049,18 @@ Going to learn some Lisp
 
   (use-package lispy)
 
-  (use-package parinfer-rust
-    :straight (parinfer-rust :type git :host github :repo "eraserhd/parinfer-rust" :files ("*.el" "*")))
-
-  (defun phl-build-parinfer ()
-    (interactive)
-    (let ((default-directory "~/.emacs.d/straight/repos/parinfer-rust")
-          (explicit-shell-file-name "zsh"))
-      (message "Attempting parinfer library build")
-      (message (shell-command-to-string "cargo build --release --features emacs"))
-      (message "Copying library over")
-      (message (shell-command-to-string "cp ./target/release/libparinfer_rust.dylib ~/.emacs.d/parinfer-rust/libparinfer_rust.so"))
-      ))
-
-  (use-package parinfer-rust-mode
-    :after parinfer-rust
-    :init
-    (setq parinfer-rust-library "~/.emacs.d/parinfer-rust/libparinfer_rust.so")
-    (if (file-exists-p parinfer-rust-library)
-        (message "library already exists")
-    (phl-build-parinfer))
-    )
+  (straight-use-package '(parinfer-rust :type git :host github
+                                        :repo "eraserhd/parinfer-rust"
+                                        :files ("*")
+                                        :pre-build ("cargo" "build" "--release" "--features" "emacs")
+                                        :post-build ("cp" "./target/release/libparinfer_rust.dylib" "/Users/100phlecs/.emacs.d/libparinfer_rust.so")))
+  (setq parinfer-rust-library "~/.emacs.d/libparinfer_rust.so")
+  (use-package parinfer-rust-mode)
   (setq-default tab-width 2)
   (setq-default indent-tabs-mode nil)
 
 #+end_src
+
 
 * Diagnostics
 To find ways on improving, I track the time I spend as well as record
