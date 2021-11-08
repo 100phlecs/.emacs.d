@@ -52,7 +52,7 @@
 
 (add-hook 'prog-mode-hook (lambda()
                             (display-line-numbers-mode)
-                            (electric-pair-mode)))
+                            ))
 
 (set-face-attribute 'default nil :family "Iosevka Term" :height 170)
 (set-face-attribute 'fixed-pitch nil :family "Iosevka Fixed" :height 170)
@@ -85,11 +85,8 @@
 (use-package solarized-theme
   :after moody
   :config
-
-  ;;      (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9")
   (setq solarized-use-more-italic t)
   (setq solarized-scale-markdown-headlines t))
-
 
 (defun phl-apply-theme (appearance)
   "Load theme, taking current system APPEARANCE into consideration."
@@ -99,11 +96,16 @@
   (pcase appearance
     ('light (load-theme 'solarized-gruvbox-light t))
     ('dark (load-theme 'solarized-dark t)))
+  ;; preserve syntax highlighting
+  (setq region-highlight (face-attribute 'highlight :background))
+  (set-face-attribute 'region nil :background region-highlight)
+  (set-face-attribute 'region nil :foreground nil)
 
   (setq moody-line (face-attribute 'mode-line :underline))
   (set-face-attribute 'mode-line          nil :overline   moody-line)
   (set-face-attribute 'mode-line-inactive nil :overline   moody-line)
   (set-face-attribute 'mode-line-inactive nil :underline  moody-line)
+  (setq show-paren-priority -50)
   (set-face-attribute 'mode-line          nil :box        nil)
   (set-face-attribute 'mode-line-inactive nil :box        nil)
   )
@@ -677,6 +679,21 @@ folder, otherwise delete a word."
 
 (global-set-key (kbd "C-c e") #'phl-start-new-eshell)
 
+(defun phl-configure-eshell ()
+  ;; Save command history when commands are entered
+  (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+  ;; Truncate buffer for performance
+  (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+  (setq eshell-history-size         10000
+        eshell-buffer-maximum-lines 10000
+        eshell-hist-ignoredups t
+        eshell-scroll-to-bottom-on-input t))
+
+(use-package eshell
+  :hook (eshell-first-time-mode . phl-configure-eshell))
+
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
   :init
@@ -710,18 +727,34 @@ folder, otherwise delete a word."
   (setq lsp-dart-flutter-sdk-dir "/Users/100phlecs/packages/flutter")
   (setq lsp-dart-enable-sdk-formatter t))
 
-(use-package sly)
+(use-package slime)
 (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
 
-(use-package parinfer
-  :init
-  (setq parinfer-extensions
-        '(defaults                 ; should be included.
-          pretty-parens           ; different paren styles for different modes.
-          smart-tab               ; C-b & C-f jump positions and smart shift with tab & S-tab.
-          smart-yank)))            ; Yank behavior depend on mode
+(use-package lispy)
 
-(global-set-key (kbd "C-c t") #'parinfer-toggle-mode)
+(use-package parinfer-rust
+  :straight (parinfer-rust :type git :host github :repo "eraserhd/parinfer-rust" :files ("*.el" "*")))
+
+(defun phl-build-parinfer ()
+  (interactive)
+  (let ((default-directory "~/.emacs.d/straight/repos/parinfer-rust")
+        (explicit-shell-file-name "zsh"))
+    (message "Attempting parinfer library build")
+    (message (shell-command-to-string "cargo build --release --features emacs"))
+    (message "Copying library over")
+    (message (shell-command-to-string "cp ./target/release/libparinfer_rust.dylib ~/.emacs.d/parinfer-rust/libparinfer_rust.so"))
+    ))
+
+(use-package parinfer-rust-mode
+  :after parinfer-rust
+  :init
+  (setq parinfer-rust-library "~/.emacs.d/parinfer-rust/libparinfer_rust.so")
+  (if (file-exists-p parinfer-rust-library)
+      (message "library already exists")
+  (phl-build-parinfer))
+  )
+(setq-default tab-width 2)
+(setq-default indent-tabs-mode nil)
 
 (use-package esup
   :config
