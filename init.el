@@ -557,12 +557,15 @@ folder, otherwise delete a word."
 
 
   (org-roam-capture-templates
-   '(("d" "default" plain
+   `(("d" "default" plain
       "%?"
       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
       :unnarrowed t)
-     ("p" "book notes" plain
-      "\n* Source\n\nAuthor: %^{Author}\nTitle: ${title}\nYear :%^{Year}\n\n* Summary\n\n%?"
+     ("b" "book notes" plain (file ,(concat org-roam-directory "/Templates/BookTemplate.org"))
+      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+      :unnarrowed t)
+     ("a" "design notes" plain
+      (file ,(concat org-roam-directory "/Templates/DesignAnalysisTemplate.org"))
       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
       :unnarrowed t)
      )
@@ -708,9 +711,9 @@ folder, otherwise delete a word."
                (when (equal org-state "DONE")
                  (phl-org-roam-copy-todo-to-today))))
 
-(global-set-key (kbd "C-c n t") #'phl-org-roam-capture-task)
+(global-set-key (kbd "C-c n t") #'phl-org-roam-capture-project-task)
 (global-set-key (kbd "C-c n n") #'phl-org-roam-capture-inbox)
-(global-set-key (kbd "C-c n p") #' phl-org-roam-find-project)
+(global-set-key (kbd "C-c n p") #'phl-org-roam-find-project)
 
 (defun phl-start-new-eshell ()
   "Spawn a new eshell always."
