@@ -1,6 +1,5 @@
 ;; -*- lexical-binding: t -*-
 
-;; [[file:README.org::*Starting up][Starting up:2]]
 (setenv "LIBRARY_PATH" "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib/gcc/11/gcc/aarch64-apple-darwin20/11.1.0")
 
 (setq gc-cons-threshold (* 50 1000 1000))
@@ -35,25 +34,22 @@
                            (float-time
                             (time-subtract after-init-time before-init-time)))
                    gcs-done)))
-;; Starting up:2 ends here
 
-;; [[file:README.org::*More path loading][More path loading:1]]
 (use-package exec-path-from-shell
   :init
   (exec-path-from-shell-initialize))
-;; More path loading:1 ends here
 
-;; [[file:README.org::*Diminish][Diminish:1]]
 (use-package diminish)
-;; Diminish:1 ends here
 
-;; [[file:README.org::*Basic UI][Basic UI:1]]
 (menu-bar-mode t)
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (tooltip-mode -1)
 (toggle-frame-maximized)
 (set-fringe-mode 10)
+(setq-default tab-width 2)
+(setq-default indent-tabs-mode nil)
+
 
 (setq ring-bell-function 'ignore)
 
@@ -63,9 +59,7 @@
 (add-hook 'prog-mode-hook (lambda()
                             (display-line-numbers-mode)
                             ))
-;; Basic UI:1 ends here
 
-;; [[file:README.org::*Font][Font:1]]
 (set-face-attribute 'default nil :family "Iosevka Term" :height 170)
 (set-face-attribute 'fixed-pitch nil :family "Iosevka Fixed" :height 170)
 (set-face-attribute 'variable-pitch nil :family "Iosevka" :height 170)
@@ -81,15 +75,11 @@
   ;; Enables ligature checks globally in all buffers. You can also do it
   ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
-;; Font:1 ends here
 
-;; [[file:README.org::*rainbow-delimiter][rainbow-delimiter:1]]
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode)
   :diminish rainbow-delimiters-mode)
-;; rainbow-delimiter:1 ends here
 
-;; [[file:README.org::*modeline][modeline:1]]
 (use-package moody
   :config
   (setq x-underline-at-descent-line t)
@@ -97,9 +87,7 @@
   (moody-replace-mode-line-buffer-identification)
   (moody-replace-vc-mode)
   (moody-replace-eldoc-minibuffer-message-function))
-;; modeline:1 ends here
 
-;; [[file:README.org::*Theme - Solarized][Theme - Solarized:1]]
 (use-package solarized-theme
   :after moody
   :config
@@ -109,16 +97,12 @@
 (defun phl-apply-theme (appearance)
   "Load theme, taking current system APPEARANCE into consideration."
   (mapc #'disable-theme custom-enabled-themes)
-
-
   (pcase appearance
     ('light (load-theme 'solarized-gruvbox-light t))
     ('dark (load-theme 'solarized-gruvbox-dark t)))
   ;; preserve syntax highlighting
-  (setq region-highlight (face-attribute 'highlight :background))
-  (set-face-attribute 'region nil :background region-highlight)
-  (set-face-attribute 'region nil :foreground nil)
-
+  (set-face-background 'region (face-attribute 'highlight :background))
+  (set-face-foreground 'region nil)
   (setq moody-line (face-attribute 'mode-line :underline))
   (set-face-attribute 'mode-line          nil :overline   moody-line)
   (set-face-attribute 'mode-line-inactive nil :overline   moody-line)
@@ -128,53 +112,36 @@
   (set-face-attribute 'mode-line-inactive nil :box        nil)
   )
 
+(defun phl-fix-bookmark ()
+  "Set bookmark appearance after load"
+  (set-face-foreground 'bookmark-face (face-attribute 'default :foreground))
+  (set-face-background 'bookmark-face (face-attribute 'default :background)))
 
+(add-hook 'bookmark-load-hook #'phl-fix-bookmark)
 (add-hook 'ns-system-appearance-change-functions #'phl-apply-theme)
-;; Theme - Solarized:1 ends here
 
-;; [[file:README.org::*which-key][which-key:1]]
 (use-package which-key
   :init (which-key-mode)
   :diminish which-key-mode
   :config (setq which-key-idle-delay 0.3))
-;; which-key:1 ends here
 
-;; [[file:README.org::*git][git:1]]
 (use-package magit)
-;; git:1 ends here
 
-;; [[file:README.org::*expand region][expand region:1]]
 (use-package expand-region
   :bind(
   ("C-=" . er/expand-region)))
-;; expand region:1 ends here
-
-;; [[file:README.org::*keybindings][keybindings:1]]
-(defun phl-kill-this-buffer-and-close-window ()
-  "Kill the active buffer and then close active window."
-  (interactive)
-  (kill-this-buffer)
-  (delete-window))
 
 (global-set-key (kbd "C-x M-k") #'kill-this-buffer)
-(global-set-key (kbd "C-x k") #'phl-kill-this-buffer-and-close-window)
-(global-set-key (kbd "C-x M-K") #'kill-buffer)
 (global-set-key (kbd "C-c s") #'ispell)
-;; keybindings:1 ends here
 
-;; [[file:README.org::*yes-or-no -> y-or-n][yes-or-no -> y-or-n:1]]
 (fset 'yes-or-no-p 'y-or-n-p)
-;; yes-or-no -> y-or-n:1 ends here
 
-;; [[file:README.org::*hydra][hydra:1]]
 (use-package hydra)
 (defhydra hydra-text-scale (global-map "<f2>")
   "scale text"
   ("C-p" text-scale-increase "in")
   ("C-n" text-scale-decrease "out"))
-;; hydra:1 ends here
 
-;; [[file:README.org::*helpful][helpful:1]]
 (use-package helpful)
   ;; Note that the built-in `describe-function' includes both functions
     ;; and macros. `helpful-function' is functions only, so we provide
@@ -200,9 +167,7 @@
     ;; don't find this very useful, but it's frequently useful to only
     ;; look at interactive functions.
     (global-set-key (kbd "C-h C") #'helpful-command)
-;; helpful:1 ends here
 
-;; [[file:README.org::*complete at point/autocompletion][complete at point/autocompletion:1]]
 (use-package company
   :after lsp-mode
   :hook (lsp-mode . company-mode)
@@ -213,23 +178,17 @@
   :custom
   (company-minimum-prefix-length 1)
   (company-idle-delay 0.0))
-;; complete at point/autocompletion:1 ends here
 
-;; [[file:README.org::*yasnippet][yasnippet:1]]
 (use-package yasnippet
   :init (yas-global-mode 1))
 (use-package doom-snippets
 :after yasnippet
 :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
-;; yasnippet:1 ends here
 
-;; [[file:README.org::*whole-line-or-region][whole-line-or-region:1]]
 (use-package whole-line-or-region
   :straight (whole-line-or-region :type git :host github :repo "purcell/whole-line-or-region" :files ("*.el" "*")))
 (whole-line-or-region-global-mode t)
-;; whole-line-or-region:1 ends here
 
-;; [[file:README.org::*project management][project management:1]]
 (use-package project
   :after magit
   :init
@@ -240,9 +199,7 @@
      (project-vc-dir "VC-Dir" nil)
      (project-eshell "Eshell" nil)
      (magit-status "Magit" ?m))))
-;; project management:1 ends here
 
-;; [[file:README.org::*buffer management][buffer management:1]]
 (use-package popper
     :init
     (setq popper-reference-buffers
@@ -282,11 +239,9 @@
        ("C-^" . phl-popper-maximize-buffer)
     )
 )
-;; buffer management:1 ends here
 
-;; [[file:README.org::*Vertico][Vertico:1]]
 (use-package vertico
-  :init 
+  :init
   (vertico-mode)
   (defun phl-minibuffer-backward-kill (arg)
     "When minibuffer is completing a file name delete up to parent
@@ -302,12 +257,10 @@ folder, otherwise delete a word."
               ("C-f" . vertico-exit)
               :map minibuffer-local-map
               ("M-DEL" . phl-minibuffer-backward-kill))
-  :custom 
+  :custom
   (vertico-cycle t)
   (custom-set-faces '(vertico-current ((t (:background "#3a3f5a"))))))
-;; Vertico:1 ends here
 
-;; [[file:README.org::*Orderless][Orderless:1]]
 (use-package orderless
 :init
 ;; Configure a custom style dispatcher (see the Consult wiki)
@@ -316,9 +269,7 @@ folder, otherwise delete a word."
 (setq completion-styles '(orderless)
       completion-category-defaults nil
       completion-category-overrides '((file (styles . (partial-completion))))))
-;; Orderless:1 ends here
 
-;; [[file:README.org::*Consult][Consult:1]]
 ;; Example configuration for Consult
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
@@ -438,16 +389,12 @@ folder, otherwise delete a word."
 
 (use-package consult-yasnippet
   :bind ("C-x C-y" . consult-yasnippet))
-;; Consult:1 ends here
 
-;; [[file:README.org::*Marginalia][Marginalia:1]]
 ;; Enable richer annotations using the Marginalia package
 (use-package marginalia
   :init
   (marginalia-mode))
-;; Marginalia:1 ends here
 
-;; [[file:README.org::*Embark & Avy][Embark & Avy:1]]
 (use-package embark
   :bind (("M-o" . embark-act)
          ("M-C-o" . embark-export))
@@ -516,16 +463,12 @@ folder, otherwise delete a word."
 (setf (alist-get ?  avy-dispatch-alist) 'avy-action-mark-to-char)
 (setf (alist-get ?H avy-dispatch-alist) 'avy-action-helpful)
 (setf (alist-get ?o avy-dispatch-alist) 'avy-action-embark)
-;; Embark & Avy:1 ends here
 
-;; [[file:README.org::*UI Setup][UI Setup:1]]
 (defun phl-org-mode-setup ()
   (org-indent-mode)
   (auto-fill-mode 1)
   (visual-line-mode 1))
-;; UI Setup:1 ends here
 
-;; [[file:README.org::*Grab org and its modules][Grab org and its modules:1]]
 (use-package org
   :hook (org-mode . phl-org-mode-setup)
   :config
@@ -546,15 +489,11 @@ folder, otherwise delete a word."
   ;; Save Org buffers after refiling!
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
   :bind ("C-c a" . org-agenda))
-;; Grab org and its modules:1 ends here
 
-;; [[file:README.org::*org bullets][org bullets:1]]
 (use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode))
-;; org bullets:1 ends here
 
-;; [[file:README.org::*org-roam][org-roam:1]]
 (use-package org-roam
   :straight t
   :demand
@@ -601,13 +540,9 @@ folder, otherwise delete a word."
   (require 'org-roam-dailies) ;; Ensure the keymap is available
   (org-roam-db-autosync-mode)
   (org-roam-setup))
-;; org-roam:1 ends here
 
-;; [[file:README.org::*org-toc][org-toc:1]]
 (use-package org-make-toc)
-;; org-toc:1 ends here
 
-;; [[file:README.org::*Easily insert nodes quicker][Easily insert nodes quicker:1]]
 (defun org-roam-node-insert-immediate (arg &rest args)
   (interactive "P")
   (let ((args (cons arg args))
@@ -615,13 +550,11 @@ folder, otherwise delete a word."
                                                   '(:immediate-finish t)))))
     (apply #'org-roam-node-insert args)))
 (global-set-key (kbd "C-c n I") #'org-roam-node-insert-immediate)
-;; Easily insert nodes quicker:1 ends here
 
-;; [[file:README.org::*org tangle][org tangle:1]]
 (org-babel-do-load-languages
-  'org-babel-load-languagesp
-  '((emacs-lisp . t)
-    (python . t)))
+ 'org-babel-load-languagesp
+ '((emacs-lisp . t)
+   (python . t)))
 (setq org-src-tab-acts-natively t)
 (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
@@ -631,7 +564,6 @@ folder, otherwise delete a word."
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
 
-
 ;; Automatically tangle our .org config file when we save it
 (defun phl-org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
@@ -640,28 +572,8 @@ folder, otherwise delete a word."
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
-;; Automatically tangle our init.el  file when we save it
-(defun phl-org-babel-detangle-config ()
-  (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.emacs.d/init.el"))
-    (setq current-line
-          (string-to-number
-           (string-remove-prefix "Line " (what-line))))
-
-    ;; Dynamic scoping to the rescue
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-detangle))
-    (delete-window)
-    ;; jump back to this file
-    (switch-to-buffer "init.el")
-    (goto-line current-line)
-    ))
-
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl-org-babel-tangle-config)))
-(add-hook 'emacs-lisp-mode-hook (lambda () (add-hook 'after-save-hook #'phl-org-babel-detangle-config)))
-;; org tangle:1 ends here
 
-;; [[file:README.org::*org templates & tags][org templates & tags:1]]
 (defun phl-org-roam-filter-by-tag (tag-name)
   (lambda (node)
     (member tag-name (org-roam-node-tags node))))
@@ -756,9 +668,7 @@ folder, otherwise delete a word."
 (global-set-key (kbd "C-c n t") #'phl-org-roam-capture-task)
 (global-set-key (kbd "C-c n n") #'phl-org-roam-capture-inbox)
 (global-set-key (kbd "C-c n p") #' phl-org-roam-find-project)
-;; org templates & tags:1 ends here
 
-;; [[file:README.org::*Eshell][Eshell:1]]
 (defun phl-start-new-eshell ()
   "Spawn a new eshell always."
   (interactive)
@@ -781,9 +691,7 @@ folder, otherwise delete a word."
 
 (use-package eshell
   :hook (eshell-first-time-mode . phl-configure-eshell))
-;; Eshell:1 ends here
 
-;; [[file:README.org::*Language Server (lsp-mode)][Language Server (lsp-mode):1]]
 (use-package lsp-mode
   :commands (lsp lsp-deffered)
   :init
@@ -796,16 +704,13 @@ folder, otherwise delete a word."
   :hook (lsp-mode . lsp-ui-mode)
   :custom
   (lsp-ui-doc-position 'bottom))
-;; Language Server (lsp-mode):1 ends here
 
-;; [[file:README.org::*flutter.el][flutter.el:1]]
 (use-package flutter
   :after dart-mode
   :bind (:map dart-mode-map
         ("C-M-x" . #'flutter-run-or-hot-reload))
   :custom
   (setq flutter-sdk-path "/Users/100phlecs/packages/flutter/"))
-;; flutter.el:1 ends here
 
 ;; [[file:README.org::*dart-mode][dart-mode:1]]
 (use-package dart-mode
@@ -822,43 +727,21 @@ folder, otherwise delete a word."
   (setq lsp-dart-enable-sdk-formatter t))
 ;; dart-mode:1 ends here
 
-;; [[file:README.org::*Common Lisp][Common Lisp:1]]
-(use-package slime)
+(use-package sly)
 (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
 
-(use-package slime-company
-  :after (slime company)
-  :hook  (slime-mode . company-mode)
-  :config (setq slime-company-completion 'fuzzy
-                slime-company-after-completion 'slime-company-just-one-space))
-(slime-setup '(slime-company))
 (use-package lispy)
+(setq lispy-use-sly t)
 
-(straight-use-package '(parinfer-rust :type git :host github
-                                      :repo "eraserhd/parinfer-rust"
-                                      :files ("*")
-                                      :pre-build ("cargo" "build" "--release" "--features" "emacs")
-                                      :post-build ("cp" "./target/release/libparinfer_rust.dylib" "/Users/100phlecs/.emacs.d/libparinfer_rust.so")))
-(setq parinfer-rust-library "~/.emacs.d/libparinfer_rust.so")
-(use-package parinfer-rust-mode)
-(setq-default tab-width 2)
-(setq-default indent-tabs-mode nil)
-;; Common Lisp:1 ends here
-
-;; [[file:README.org::*ESUP][ESUP:1]]
 (use-package esup
   :config
   (setq esup-depth 0))
-;; ESUP:1 ends here
 
-;; [[file:README.org::*ActivityWatch][ActivityWatch:1]]
 (use-package activity-watch-mode
   :init
    (global-activity-watch-mode)
   :diminish activity-watch-mode)
-;; ActivityWatch:1 ends here
 
-;; [[file:README.org::*Pomodoro Technique][Pomodoro Technique:1]]
 (use-package pomidor
   :bind (("<f12>" . pomidor))
   :config (setq pomidor-sound-tick nil
@@ -870,4 +753,3 @@ folder, otherwise delete a word."
                           ;; force fringe update
                           (set-window-buffer nil (current-buffer)))))
 (setq gc-cons-threshold (* 2 1000 1000))
-;; Pomodoro Technique:1 ends here
