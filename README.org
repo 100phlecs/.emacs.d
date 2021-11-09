@@ -1,5 +1,6 @@
 #+title: 100phlecs of elisp
-#+PROPERTY: header-args:emacs-lisp :tangle ./init.el
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.el 
+#+PROPERTY: header-args :comments link
 
 * In retrospect
 :PROPERTIES:
@@ -84,7 +85,12 @@ EMACS* buffer.
 * Bootstrapping
 ** Starting up
 Lexical binding adds flexibility/speed for the packages that detect
-it. And then package managers makes things easy.  We'll also need some path
+it.
+#+begin_src emacs-lisp :comments no
+  ;; -*- lexical-binding: t -*-
+#+end_src
+
+And then package managers makes things easy.  We'll also need some path
 variables set, for [[https://github.com/d12frosted/homebrew-emacs-plus/issues/378][gccemacs]] and terminal.  While we're here, I'll also
 grab a package that keeps saves and other files in the emacs.d
 directory, the [[https://github.com/emacscollective/no-littering][no-littering]] package. If you don't set this early on,
@@ -95,9 +101,8 @@ file. Then as a final touch we'll see how long it takes for emacs to
 start.
 
 #+begin_src emacs-lisp
-  ;; -*- lexical-binding: t -*-
   (setenv "LIBRARY_PATH" "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib/gcc/11/gcc/aarch64-apple-darwin20/11.1.0")
-  
+
   (setq gc-cons-threshold (* 50 1000 1000))
     (defvar bootstrap-version)
     (let ((bootstrap-file
@@ -132,8 +137,8 @@ start.
                      gcs-done)))
 #+end_src
 
-** More [[https://github.com/purcell/exec-path-from-shell][path loading]]
-Need to get the environment set correctly, otherwise terminals won't
+** More path loading
+Need to get the [[https://github.com/purcell/exec-path-from-shell][environment]] set correctly, otherwise terminals won't
 work or certain packages. This is for GUI emacs.
 
 #+begin_src emacs-lisp
@@ -142,8 +147,8 @@ work or certain packages. This is for GUI emacs.
     (exec-path-from-shell-initialize))
 #+end_src
 
-** [[https://github.com/myrjola/diminish.el][Diminish]]
-To 'diminish' a mode is to no longer have it show up in the
+** Diminish
+To [[https://github.com/myrjola/diminish.el][Diminish]] a mode is to no longer have it show up in the
 modeline. Useful to remove clutter from the modeline.
 
 #+begin_src emacs-lisp
@@ -171,6 +176,8 @@ buffers, so we'll disable them.
   (toggle-frame-maximized)
   (set-fringe-mode 10)
 
+  (setq ring-bell-function 'ignore)
+
   (column-number-mode t)
   (setq display-line-numbers-type 'relative)
 
@@ -187,7 +194,6 @@ Comes with ligatures. Real easy with [[https://github.com/mickeynp/ligature.el][
 the Iosevka example below. 
 
 #+begin_src emacs-lisp
-
   (set-face-attribute 'default nil :family "Iosevka Term" :height 170)
   (set-face-attribute 'fixed-pitch nil :family "Iosevka Fixed" :height 170)
   (set-face-attribute 'variable-pitch nil :family "Iosevka" :height 170)
@@ -203,19 +209,19 @@ the Iosevka example below.
     ;; Enables ligature checks globally in all buffers. You can also do it
     ;; per mode with `ligature-mode'.
     (global-ligature-mode t))
-
 #+end_src
 
-** [[https://github.com/Fanael/rainbow-delimiters][Rainbow Parentheses/Curlies]]
-Super nice to have in any prog file.
-
+** rainbow-delimiter
+ [[https://github.com/Fanael/rainbow-delimiters][Rainbow Parentheses/Curlies]]. Super nice to have in any prog file.
+ 
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
     :hook (prog-mode . rainbow-delimiters-mode)
     :diminish rainbow-delimiters-mode)
 #+end_src
 
-** [[https://github.com/tarsius/moody][moody]]
+** modeline
+Using [[https://github.com/tarsius/moody][moody]].
 Stealing some theme management :~)
 #+begin_src emacs-lisp
   (use-package moody
@@ -233,7 +239,6 @@ themescape to be the one that just works.
 Trying out a subset of it.
 
 #+begin_src emacs-lisp
-
   (use-package solarized-theme
     :after moody
     :config
@@ -247,7 +252,7 @@ Trying out a subset of it.
 
     (pcase appearance
       ('light (load-theme 'solarized-gruvbox-light t))
-      ('dark (load-theme 'solarized-dark t)))
+      ('dark (load-theme 'solarized-gruvbox-dark t)))
     ;; preserve syntax highlighting
     (setq region-highlight (face-attribute 'highlight :background))
     (set-face-attribute 'region nil :background region-highlight)
@@ -264,14 +269,12 @@ Trying out a subset of it.
 
 
   (add-hook 'ns-system-appearance-change-functions #'phl-apply-theme)
-
-
 #+end_src
 * Discoverability / Navigation
 
-** [[https://github.com/justbur/emacs-which-key][which key]]
-A little popup that comes after you start a key chord. Super useful,
-use it all the time, excessively. 
+** which-key
+[[https://github.com/justbur/emacs-which-key][which key]] is a little popup that comes after you start a key
+chord. Super useful, use it all the time, excessively.
 
 #+begin_src emacs-lisp
 (use-package which-key
@@ -280,7 +283,8 @@ use it all the time, excessively.
   :config (setq which-key-idle-delay 0.3))
 #+end_src
 
-** [[https://github.com/magit/magit][It's magit!]]
+** git
+[[https://github.com/magit/magit][It's magit!]]
 Getting used to it, a lot nicer than grabbing a terminal, that's for sure.
 
 #+begin_src emacs-lisp
@@ -292,9 +296,9 @@ Easy way to select what you want, mostly use it for removing chars
 within quotes. Maybe I don't need it. But it seems like the embark
 cycle isn't a good use case for this
 #+begin_src emacs-lisp
-    (use-package expand-region
-      :bind(
-      ("C-=" . er/expand-region)))
+  (use-package expand-region
+    :bind(
+    ("C-=" . er/expand-region)))
 #+end_src
 ** keybindings
 Need a place to drop some custom keys 
@@ -316,10 +320,11 @@ Need a place to drop some custom keys
 Quicker confirmations
 
 #+begin_src emacs-lisp
-(fset 'yes-or-no-p 'y-or-n-p)
+  (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
-** [[https://github.com/abo-abo/hydra][hydra]]
+** hydra
+[[https://github.com/abo-abo/hydra][hydra]] allows repeatable commands.
 Only use it for text size, but maybe more ideas
 will come or I'll stop using this.
 
@@ -331,7 +336,8 @@ will come or I'll stop using this.
   ("C-n" text-scale-decrease "out"))
 #+end_src
 
-** [[https://github.com/Wilfred/helpful][helpful]]
+** helpful
+Improved [[https://github.com/Wilfred/helpful][help]] info.
 Getting comfortable at looking variables/functions is the way to go.
 #+begin_src emacs-lisp
 (use-package helpful)
@@ -377,11 +383,10 @@ Autocompletion is smart for any sort of typing, isn't it? So I enable
     :custom
     (company-minimum-prefix-length 1)
     (company-idle-delay 0.0))
-  
 #+end_src
 
-** [[https://github.com/joaotavora/yasnippet][yasnippet]]
-Templating is sure convenient to have, wondering when I'll make more
+** yasnippet
+ [[https://github.com/joaotavora/yasnippet][yasnippet]] for code templates. Templating is sure convenient to have, wondering when I'll make more
 use of it.
 #+begin_src emacs-lisp
   (use-package yasnippet
@@ -391,16 +396,16 @@ use of it.
   :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
 #+end_src
 
-** [[https://github.com/purcell/whole-line-or-region][whole-line-or-region]]
-Quick swap-out to make more use of M-w instead of doing C-a C-k C-k
+** whole-line-or-region
+ [[https://github.com/purcell/whole-line-or-region][whole-line-or-region]] is a quick swap-out to make more use of M-w instead of doing C-a C-k C-k
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
   :straight (whole-line-or-region :type git :host github :repo "purcell/whole-line-or-region" :files ("*.el" "*")))
 (whole-line-or-region-global-mode t)
 #+end_src
 
-** [[https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/project.el][project]] management
-Originally used projectile, going to give project.el a try. Don't have
+** project management
+Originally used projectile, going to give [[https://github.com/emacs-mirror/emacs/blob/master/lisp/progmodes/project.el][project.el]] a try. Don't have
 much to say about it at this point.
 #+begin_src emacs-lisp
   (use-package project
@@ -416,7 +421,8 @@ much to say about it at this point.
 
 #+end_src
 
-** [[https://github.com/karthink/popper][buffer management]]
+** buffer management
+Trying out [[https://github.com/karthink/popper][popper]].
 Excellent way to manage minor buffers!
 #+begin_src emacs-lisp
     (use-package popper
@@ -465,8 +471,8 @@ Originally tried out ivy, going to try out all of these other packages
 and see how it goes. For now I'll use vertico after some debilitating
 thought.  So far consult buffer preview is pretty nice.
 
-*** [[https://github.com/minad/vertico][Vertico]]
-Vertical completion in command searching
+*** Vertico
+[[https://github.com/minad/vertico][Vertico]] is Vertical completion in command searching
 
 #+begin_src emacs-lisp
 
@@ -493,9 +499,8 @@ Vertical completion in command searching
 
 #+end_src
   
-*** [[https://github.com/oantolin/orderless][Orderless]]
-
-any order searching
+*** Orderless
+[[https://github.com/oantolin/orderless][Orderless]]; any order searching
 
 #+begin_src emacs-lisp
 
@@ -510,9 +515,8 @@ any order searching
 
 #+end_src
 
-*** [[https://github.com/minad/consult][Consult]]
-
-improved interfacing with emacs
+*** Consult
+[[https://github.com/minad/consult][Consult]]; improved interfacing with emacs
 
 #+begin_src emacs-lisp
 
@@ -638,8 +642,8 @@ improved interfacing with emacs
   
 #+end_src
 
-*** [[https://github.com/minad/marginalia][Marginalia]]
-Command info as well as keybinding for minibuffer
+*** Marginalia
+[[https://github.com/minad/marginalia][Marginalia]]; Command info as well as keybinding for minibuffer
 #+begin_src emacs-lisp
 
   ;; Enable richer annotations using the Marginalia package
@@ -648,7 +652,9 @@ Command info as well as keybinding for minibuffer
     (marginalia-mode))
 #+end_src
 
-*** [[https://github.com/oantolin/embark][Embark]] & [[https://github.com/abo-abo/avy][Avy]]
+*** Embark & Avy
+ [[https://github.com/oantolin/embark][Embark]]; emacs action flow &
+ [[https://github.com/abo-abo/avy][Avy]]; char tree movement
 Just adding this in since it is often paired with the others.
 Trying out some embark+avy combinations too.
 #+begin_src emacs-lisp
@@ -728,42 +734,42 @@ The more I use it the more I wonder why I haven't used it before.
 ** UI Setup
 
 #+begin_src emacs-lisp
-(defun phl-org-mode-setup ()
-  (org-indent-mode)
-  (auto-fill-mode 1)
-  (visual-line-mode 1))
+  (defun phl-org-mode-setup ()
+    (org-indent-mode)
+    (auto-fill-mode 1)
+    (visual-line-mode 1))
 #+end_src
 
 ** Grab org and its modules
 
 #+begin_src emacs-lisp
-(use-package org
-  :hook (org-mode . phl-org-mode-setup)
-  :config
-  (setq org-agenda-start-with-log-mode t)
-  (setq org-log-done 'time)
-  (setq org-log-into-drawer t)
-  (setq org-ellipsis " ⤵"
-	org-hide-emphasis-markers t)
-  (setq org-todo-keywords
-    '((sequence "BACKLOG(b)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)")))
-  
-  (setq org-refile-targets
-    '(("Archive.org" :maxlevel . 1)
-      ("Tasks.org" :maxlevel . 1)))
-  (require 'org-habit)
-  (add-to-list 'org-modules 'org-habit)
-  (setq org-habit-graph-column 60)
-  ;; Save Org buffers after refiling!
-  (advice-add 'org-refile :after 'org-save-all-org-buffers)
-  :bind ("C-c a" . org-agenda))
+  (use-package org
+    :hook (org-mode . phl-org-mode-setup)
+    :config
+    (setq org-agenda-start-with-log-mode t)
+    (setq org-log-done 'time)
+    (setq org-log-into-drawer t)
+    (setq org-ellipsis " ⤵"
+    org-hide-emphasis-markers t)
+    (setq org-todo-keywords
+      '((sequence "BACKLOG(b)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)")))
+
+    (setq org-refile-targets
+      '(("Archive.org" :maxlevel . 1)
+        ("Tasks.org" :maxlevel . 1)))
+    (require 'org-habit)
+    (add-to-list 'org-modules 'org-habit)
+    (setq org-habit-graph-column 60)
+    ;; Save Org buffers after refiling!
+    (advice-add 'org-refile :after 'org-save-all-org-buffers)
+    :bind ("C-c a" . org-agenda))
 #+end_src
 
 ** org bullets
 #+begin_src emacs-lisp
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode))
+  (use-package org-bullets
+    :after org
+    :hook (org-mode . org-bullets-mode))
 #+end_src
 
 ** org-roam
@@ -819,19 +825,19 @@ Makes writing easy compared to everything else I've tried.
 
 ** org-toc
 #+begin_src emacs-lisp
-(use-package org-make-toc)
+  (use-package org-make-toc)
 #+end_src
 
 ** Easily insert nodes quicker
 
 #+begin_src emacs-lisp
-(defun org-roam-node-insert-immediate (arg &rest args)
-  (interactive "P")
-  (let ((args (cons arg args))
-        (org-roam-capture-templates (list (append (car org-roam-capture-templates)
-                                                  '(:immediate-finish t)))))
-    (apply #'org-roam-node-insert args)))
-(global-set-key (kbd "C-c n I") #'org-roam-node-insert-immediate)
+  (defun org-roam-node-insert-immediate (arg &rest args)
+    (interactive "P")
+    (let ((args (cons arg args))
+          (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                    '(:immediate-finish t)))))
+      (apply #'org-roam-node-insert args)))
+  (global-set-key (kbd "C-c n I") #'org-roam-node-insert-immediate)
 #+end_src
 
 ** org tangle
@@ -862,7 +868,25 @@ We can just autogenerate it with this snippet.
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
 
+  ;; Automatically tangle our init.el  file when we save it
+  (defun phl-org-babel-detangle-config ()
+    (when (string-equal (buffer-file-name)
+                        (expand-file-name "~/.emacs.d/init.el"))
+      (setq current-line
+            (string-to-number
+             (string-remove-prefix "Line " (what-line))))
+
+      ;; Dynamic scoping to the rescue
+      (let ((org-confirm-babel-evaluate nil))
+        (org-babel-detangle))
+      (delete-window)
+      ;; jump back to this file
+      (switch-to-buffer "init.el")
+      (goto-line current-line)
+      ))
+
   (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'phl-org-babel-tangle-config)))
+  (add-hook 'emacs-lisp-mode-hook (lambda () (add-hook 'after-save-hook #'phl-org-babel-detangle-config)))
 #+end_src
 
 ** org templates & tags
@@ -870,7 +894,6 @@ To make it easier to write up notes around certain domains, as well as
 having a project note to show up in agenda.
 
 #+begin_src emacs-lisp
-
   (defun phl-org-roam-filter-by-tag (tag-name)
     (lambda (node)
       (member tag-name (org-roam-node-tags node))))
@@ -993,13 +1016,11 @@ It just works.
 
   (use-package eshell
     :hook (eshell-first-time-mode . phl-configure-eshell))
-
 #+end_src
 ** Language Server (lsp-mode)
 Using lsp-mode because it just works
 
 #+begin_src emacs-lisp
-
   (use-package lsp-mode
     :commands (lsp lsp-deffered)
     :init
@@ -1012,22 +1033,21 @@ Using lsp-mode because it just works
     :hook (lsp-mode . lsp-ui-mode)
     :custom
     (lsp-ui-doc-position 'bottom))
-
  #+end_src
 ** Dart/Flutter
 Surprised how well this is integrated. You just need more packages
 *** flutter.el
 #+begin_src emacs-lisp
-(use-package flutter
-  :after dart-mode
-  :bind (:map dart-mode-map
-	      ("C-M-x" . #'flutter-run-or-hot-reload))
-  :custom
-  (setq flutter-sdk-path "/Users/100phlecs/packages/flutter/"))
+  (use-package flutter
+    :after dart-mode
+    :bind (:map dart-mode-map
+          ("C-M-x" . #'flutter-run-or-hot-reload))
+    :custom
+    (setq flutter-sdk-path "/Users/100phlecs/packages/flutter/"))
 #+end_src
 
 *** dart-mode
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :comments link
   (use-package dart-mode
     :hook (dart-mode . lsp))
 
@@ -1047,6 +1067,12 @@ Going to learn some Lisp
   (use-package slime)
   (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
 
+  (use-package slime-company
+    :after (slime company)
+    :hook  (slime-mode . company-mode)
+    :config (setq slime-company-completion 'fuzzy
+                  slime-company-after-completion 'slime-company-just-one-space))
+  (slime-setup '(slime-company))
   (use-package lispy)
 
   (straight-use-package '(parinfer-rust :type git :host github
@@ -1058,9 +1084,7 @@ Going to learn some Lisp
   (use-package parinfer-rust-mode)
   (setq-default tab-width 2)
   (setq-default indent-tabs-mode nil)
-
 #+end_src
-
 
 * Diagnostics
 To find ways on improving, I track the time I spend as well as record
@@ -1075,8 +1099,11 @@ up less. This is also a catch category for emacs shenanigans
     (setq esup-depth 0))
 #+end_src
 
-** [[https://activitywatch.net/][ActivityWatch]]
-Recently started using it and like it so far. Keeps files local!
+
+
+
+** ActivityWatch
+Recently started using [[https://activitywatch.net][ActivityWatch]] and like it so far. Keeps files local!
 Previously I used RescueTime but eventually stopped for unknown
 reasons.
 
@@ -1085,7 +1112,6 @@ reasons.
     :init
      (global-activity-watch-mode)
     :diminish activity-watch-mode)
-
 #+end_src
 
 ** Pomodoro Technique
