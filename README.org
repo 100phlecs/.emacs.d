@@ -53,6 +53,7 @@ EMACS* buffer.
   - [[#whole-line-or-region][whole-line-or-region]]
   - [[#project-management][project management]]
   - [[#buffer-management][buffer management]]
+    - [[#popper][Popper]]
   - [[#search-completion][search completion]]
     - [[#vertico][Vertico]]
     - [[#orderless][Orderless]]
@@ -336,31 +337,13 @@ will come or I'll stop using this.
 Improved [[https://github.com/Wilfred/helpful][help]] info.
 Getting comfortable at looking variables/functions is the way to go.
 #+begin_src emacs-lisp
-(use-package helpful)
-  ;; Note that the built-in `describe-function' includes both functions
-    ;; and macros. `helpful-function' is functions only, so we provide
-    ;; `helpful-callable' as a drop-in replacement.
-    (global-set-key (kbd "C-h f") #'helpful-callable)
+  (use-package helpful
+    :bind
+    ([remap describe-function] . helpful-function)
+    ([remap describe-command] . helpful-command)
+    ([remap describe-variable] . helpful-variable)
+    ([remap describe-key] . helpful-key))
 
-    (global-set-key (kbd "C-h v") #'helpful-variable)
-    (global-set-key (kbd "C-h k") #'helpful-key)
-
-    ;; Lookup the current symbol at point. C-c C-d is a common keybinding
-    ;; for this in lisp modes.
-    (global-set-key (kbd "C-c C-d") #'helpful-at-point)
-
-    ;; Look up *F*unctions (excludes macros).
-    ;;
-    ;; By default, C-h F is bound to `Info-goto-emacs-command-node'. Helpful
-    ;; already links to the manual, if a function is referenced there.
-    (global-set-key (kbd "C-h F") #'helpful-function)
-
-    ;; Look up *C*ommands.
-    ;;
-    ;; By default, C-h C is bound to describe `describe-coding-system'. I
-    ;; don't find this very useful, but it's frequently useful to only
-    ;; look at interactive functions.
-    (global-set-key (kbd "C-h C") #'helpful-command)
 
 #+end_src
 
@@ -417,49 +400,51 @@ much to say about it at this point.
 #+end_src
 
 ** buffer management
+*** Popper
 Trying out [[https://github.com/karthink/popper][popper]].
 Excellent way to manage minor buffers!
 #+begin_src emacs-lisp
   (use-package popper
-      :init
-      (setq popper-reference-buffers
-            '("\\*Messages\\*"
-              "Output\\*$"
-              "\\*Async Shell Command\\*"
-              "\\*pomidor\\*"
-              "\\*Backtrace\\*"
-              pomidor-mode
-              "\\*Warnings\\*"
-              "^\\*eshell.*\\*$"
-              eshell-mode
-              flutter-mode
-              helpful-mode
-              help-mode
-              compilation-mode))
-      (popper-mode +1)
-      (popper-echo-mode +1)
-      (setq popper-echo-dispatch-keys
-            '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
+    :init
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "\\*pomidor\\*"
+            "\\*Backtrace\\*"
+            pomidor-mode
+            "\\*Warnings\\*"
+            "^\\*eshell.*\\*$"
+            eshell-mode
+            flutter-mode
+            helpful-mode
+            help-mode
+            compilation-mode))
+    (popper-mode +1)
+    (popper-echo-mode +1)
+    (setq popper-echo-dispatch-keys
+          '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
 
-      (defun phl-popper-kill-buffer ()
-        "Kill selected popper buffer without closing popper."
+    (defun phl-popper-kill-buffer ()
+      "Kill selected popper buffer without closing popper."
       (interactive)
       (popper-kill-latest-popup)
       (popper-toggle-latest))
 
-      (defun phl-popper-maximize-buffer ()
-        "Maximize selected popper buffer within frame."
-        (interactive)
-        (popper-toggle-type)
-        (maximize-window))
-  :bind (("M-`"   . popper-toggle-latest)
-         ("C-`"   . popper-cycle)
-         ("C-M-`" . popper-toggle-type)
-         ("`" . phl-popper-kill-buffer)
-         ("C-^" . phl-popper-maximize-buffer)
-      )
-  )
+    (defun phl-popper-maximize-buffer ()
+      "Maximize selected popper buffer within frame."
+      (interactive)
+      (popper-toggle-type)
+      (maximize-window))
+
+    :bind (("M-`"   . popper-toggle-latest)
+           ("C-`"   . popper-cycle)
+           ("C-M-`" . popper-toggle-type)
+           ("C-^" . phl-popper-maximize-buffer)
+           ("C-~" . phl-popper-kill-buffer))
+    )
 #+end_src
+
 
 ** search completion
 Originally tried out ivy, going to try out all of these other packages
@@ -650,7 +635,69 @@ Trying out some embark+avy combinations too.
     :bind (("M-o" . embark-act)
            ("M-C-o" . embark-export))
     :config
-    (setq embark-cycle-key (kbd "O")))
+    (setq embark-cycle-key (kbd "O"))
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none))))
+
+    (embark-define-keymap embark-command-map
+                          "Make helpful available to any commands"
+                          ((kbd "f") helpful-function))
+    )
+
+  (defun embark-which-key-indicator ()
+    "An embark indicator that displays keymaps using which-key.
+      The which-key help message will show the type and value of the
+      current target followed by an ellipsis if there are further
+      targets."
+    (lambda (&optional keymap targets prefix)
+      (if (null keymap)
+          (which-key--hide-popup-ignore-command)
+        (which-key--show-keymap
+         (if (eq (plist-get (car targets) :type) 'embark-become)
+             "Become"
+           (format "Act on %s '%s'%s"
+                   (plist-get (car targets) :type)
+                   (embark--truncate-target (plist-get (car targets) :target))
+                   (if (cdr targets) "…" "")))
+         (if prefix
+             (pcase (lookup-key keymap prefix 'accept-default)
+               ((and (pred keymapp) km) km)
+               (_ (key-binding prefix 'accept-default)))
+           keymap)
+         nil nil t (lambda (binding)
+                     (not (string-suffix-p "-argument" (cdr binding))))))))
+
+  (setq embark-indicators
+        '(embark-which-key-indicator
+          embark-highlight-indicator
+          embark-isearch-highlight-indicator))
+
+  (defun embark-hide-which-key-indicator (fn &rest args)
+    "Hide the which-key indicator immediately when using the completing-read prompter."
+    (which-key--hide-popup-ignore-command)
+    (let ((embark-indicators
+           (remq #'embark-which-key-indicator embark-indicators)))
+      (apply fn args)))
+
+
+  (advice-add #'embark-completing-read-prompter
+              :around #'embark-hide-which-key-indicator)
+
+
+  ;; Consult users will also want the embark-consult package.
+  (use-package embark-consult
+    :after (embark consult)
+    :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+
   (use-package avy
     :demand
     :bind (("C-;" . avy-goto-char-timer)
