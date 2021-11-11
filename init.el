@@ -110,7 +110,7 @@
   (setq show-paren-priority -50)
   (set-face-attribute 'mode-line          nil :box        nil)
   (set-face-attribute 'mode-line-inactive nil :box        nil)
-  )
+  (phl-fix-bookmark))
 
 (defun phl-fix-bookmark ()
   "Set bookmark appearance after load"
@@ -388,10 +388,7 @@ folder, otherwise delete a word."
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none))))
-
-  (embark-define-keymap embark-command-map
-                        "Make helpful available to any commands"
-                        ((kbd "f") helpful-function))
+  (define-key embark-command-map "f" #'helpful-function)
   )
 
 (defun embark-which-key-indicator ()
@@ -778,6 +775,25 @@ folder, otherwise delete a word."
 
 (use-package lispy)
 (setq lispy-use-sly t)
+
+(use-package rustic
+  :bind (:map rustic-mode-map
+              ("M-j" . lsp-ui-imenu)
+              ("M-?" . lsp-find-references)
+              ("C-c C-c l" . flycheck-list-errors)
+              ("C-c C-c a" . lsp-execute-code-action)
+              ("C-c C-c r" . lsp-rename)
+              ("C-c C-c q" . lsp-workspace-restart)
+              ("C-c C-c Q" . lsp-workspace-shutdown)
+              ("C-c C-c s" . lsp-rust-analyzer-status)
+              ("C-c r" . rustic-compile))
+  :config
+  (progn
+  ;; (setq rustic-lsp-setup-p nil)
+    (setq rustic-lsp-server 'rust-analyzer)
+    (setq rustic-format-on-save nil)
+    (setq rustic-indent-offset 2)
+    (electric-pair-mode 1)))
 
 (use-package esup
   :config
