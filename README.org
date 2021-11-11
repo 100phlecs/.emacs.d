@@ -784,7 +784,8 @@ The more I use it the more I wonder why I haven't used it before.
     (setq org-ellipsis " ⤵"
     org-hide-emphasis-markers t)
     (setq org-todo-keywords
-      '((sequence "BACKLOG(b)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)")))
+      '((sequence "BACKLOG(b)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+        (sequence "HABIT(h)" "|" "CHECKED(c)")))
 
     (setq org-refile-targets
       '(("Archive.org" :maxlevel . 1)

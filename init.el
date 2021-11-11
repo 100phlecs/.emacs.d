@@ -518,7 +518,8 @@ folder, otherwise delete a word."
   (setq org-ellipsis " ⤵"
   org-hide-emphasis-markers t)
   (setq org-todo-keywords
-    '((sequence "BACKLOG(b)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)")))
+    '((sequence "BACKLOG(b)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+      (sequence "HABIT(h)" "|" "CHECKED(c)")))
 
   (setq org-refile-targets
     '(("Archive.org" :maxlevel . 1)
