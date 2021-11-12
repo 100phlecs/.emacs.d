@@ -221,6 +221,32 @@
          ("C-~" . phl-popper-kill-buffer))
   )
 
+(use-package ace-window)
+    (global-set-key (kbd "M-p") #'ace-window)
+
+  (defvar global-keys-minor-mode-map (make-sparse-keymap)
+    "global-keys-minor-mode keymap.")
+
+  (define-key global-keys-minor-mode-map "\C-c\C-r" 'revert-buffer)
+  (define-key global-keys-minor-mode-map (kbd "M-o") 'ace-window)
+
+  (define-minor-mode global-keys-minor-mode
+    "A minor mode so that global key settings override annoying major modes."
+    t "global-keys" 'global-keys-minor-mode-map)
+
+
+  (global-keys-minor-mode 1)
+
+  ;; A keymap that's supposed to be consulted before the first
+  ;; minor-mode-map-alist.
+  (defconst global-minor-mode-alist (list (cons 'global-keys-minor-mode
+                                                global-keys-minor-mode-map)))
+(setf emulation-mode-map-alists '(global-minor-mode-alist))
+
+(defun my-minibuffer-setup-hook ()
+  (global-keys-minor-mode 0))
+(add-hook 'minibuffer-setup-hook 'my-minibuffer-setup-hook)
+
 (use-package vertico
   :init
   (vertico-mode)
@@ -377,8 +403,8 @@ folder, otherwise delete a word."
   (marginalia-mode))
 
 (use-package embark
-  :bind (("M-o" . embark-act)
-         ("M-C-o" . embark-export))
+  :bind (("M-'" . embark-act)
+         ("M-C-'" . embark-export))
   :config
   (setq embark-cycle-key (kbd "O"))
   ;; Optionally replace the key help with a completing-read interface

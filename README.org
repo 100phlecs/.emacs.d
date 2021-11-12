@@ -405,45 +405,77 @@ much to say about it at this point.
 Trying out [[https://github.com/karthink/popper][popper]].
 Excellent way to manage minor buffers!
 #+begin_src emacs-lisp
-  (use-package popper
-    :init
-    (setq popper-reference-buffers
-          '("\\*Messages\\*"
-            "Output\\*$"
-            "\\*Async Shell Command\\*"
-            "\\*pomidor\\*"
-            "\\*Backtrace\\*"
-            pomidor-mode
-            "\\*Warnings\\*"
-            "^\\*eshell.*\\*$"
-            eshell-mode
-            flutter-mode
-            helpful-mode
-            help-mode
-            compilation-mode))
-    (popper-mode +1)
-    (popper-echo-mode +1)
-    (setq popper-echo-dispatch-keys
-          '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
+        (use-package popper
+          :init
+          (setq popper-reference-buffers
+                '("\\*Messages\\*"
+                  "Output\\*$"
+                  "\\*Async Shell Command\\*"
+                  "\\*pomidor\\*"
+                  "\\*Backtrace\\*"
+                  pomidor-mode
+                  "\\*Warnings\\*"
+                  "^\\*eshell.*\\*$"
+                  eshell-mode
+                  flutter-mode
+                  helpful-mode
+                  help-mode
+                  compilation-mode))
+          (popper-mode +1)
+          (popper-echo-mode +1)
+          (setq popper-echo-dispatch-keys
+                '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
 
-    (defun phl-popper-kill-buffer ()
-      "Kill selected popper buffer without closing popper."
-      (interactive)
-      (popper-kill-latest-popup)
-      (popper-toggle-latest))
+          (defun phl-popper-kill-buffer ()
+            "Kill selected popper buffer without closing popper."
+            (interactive)
+            (popper-kill-latest-popup)
+            (popper-toggle-latest))
 
-    (defun phl-popper-maximize-buffer ()
-      "Maximize selected popper buffer within frame."
-      (interactive)
-      (popper-toggle-type)
-      (maximize-window))
+          (defun phl-popper-maximize-buffer ()
+            "Maximize selected popper buffer within frame."
+            (interactive)
+            (popper-toggle-type)
+            (maximize-window))
 
-    :bind (("M-`"   . popper-toggle-latest)
-           ("C-`"   . popper-cycle)
-           ("C-M-`" . popper-toggle-type)
-           ("C-^" . phl-popper-maximize-buffer)
-           ("C-~" . phl-popper-kill-buffer))
-    )
+          :bind (("M-`"   . popper-toggle-latest)
+                 ("C-`"   . popper-cycle)
+                 ("C-M-`" . popper-toggle-type)
+                 ("C-^" . phl-popper-maximize-buffer)
+                 ("C-~" . phl-popper-kill-buffer))
+          )
+
+#+end_src
+*** Ace Window
+To help move around buffers. Wondering what to reassign [C-x o] to.
+#+begin_src emacs-lisp
+
+  
+      (use-package ace-window)
+      (global-set-key (kbd "M-p") #'ace-window)
+
+    (defvar global-keys-minor-mode-map (make-sparse-keymap)
+      "global-keys-minor-mode keymap.")
+
+    (define-key global-keys-minor-mode-map "\C-c\C-r" 'revert-buffer)
+    (define-key global-keys-minor-mode-map (kbd "M-o") 'ace-window)
+
+    (define-minor-mode global-keys-minor-mode
+      "A minor mode so that global key settings override annoying major modes."
+      t "global-keys" 'global-keys-minor-mode-map)
+
+
+    (global-keys-minor-mode 1)
+
+    ;; A keymap that's supposed to be consulted before the first
+    ;; minor-mode-map-alist.
+    (defconst global-minor-mode-alist (list (cons 'global-keys-minor-mode
+                                                  global-keys-minor-mode-map)))
+  (setf emulation-mode-map-alists '(global-minor-mode-alist))
+
+  (defun my-minibuffer-setup-hook ()
+    (global-keys-minor-mode 0))
+  (add-hook 'minibuffer-setup-hook 'my-minibuffer-setup-hook)
 #+end_src
 
 
@@ -633,8 +665,8 @@ Just adding this in since it is often paired with the others.
 Trying out some embark+avy combinations too.
 #+begin_src emacs-lisp
   (use-package embark
-    :bind (("M-o" . embark-act)
-           ("M-C-o" . embark-export))
+    :bind (("M-'" . embark-act)
+           ("M-C-'" . embark-export))
     :config
     (setq embark-cycle-key (kbd "O"))
     ;; Optionally replace the key help with a completing-read interface
