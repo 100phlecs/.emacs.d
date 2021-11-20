@@ -60,20 +60,18 @@
                             (display-line-numbers-mode)
                             ))
 
-(set-face-attribute 'default nil :family "Iosevka Term" :height 170)
-(set-face-attribute 'fixed-pitch nil :family "Iosevka Fixed" :height 170)
-(set-face-attribute 'variable-pitch nil :family "Iosevka" :height 170)
+(set-face-attribute 'default nil :family "Iosevka Nerd Font" :height 170)
+(set-face-attribute 'fixed-pitch nil :family "Iosevka Nerd Font" :height 170)
+(set-face-attribute 'variable-pitch nil :family "Iosevka Nerd Font" :height 170)
+(global-prettify-symbols-mode +1)
 
 (use-package ligature
   :straight (ligature :type git :host github :repo "mickeynp/ligature.el" :files ("*.el" "*"))
   :config
-  ;; Enable all Iosevka ligatures in programming modes
-  (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
+  (ligature-set-ligatures 'text-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
                                        "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
                                        "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
                                        ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
-  ;; Enables ligature checks globally in all buffers. You can also do it
-  ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
 
 (use-package rainbow-delimiters
@@ -219,9 +217,9 @@
 
   :bind (("M-`"   . popper-toggle-latest)
          ("C-`"   . popper-cycle)
-         ("C-M-`" . popper-toggle-type)
+         ("M-~" . popper-toggle-type)
          ("C-^" . phl-popper-maximize-buffer)
-         ("C-~" . phl-popper-kill-buffer))
+         ("C-M-`" . phl-popper-kill-buffer))
   )
 
 (use-package ace-window)
@@ -231,7 +229,7 @@
 
 (define-key global-keys-minor-mode-map "\C-c\C-r" 'revert-buffer)
 (define-key global-keys-minor-mode-map (kbd "M-o") 'ace-window)
-
+(define-key global-keys-minor-mode-map (kbd "M-`") 'popper-toggle-latest)
 (define-minor-mode global-keys-minor-mode
   "A minor mode so that global key settings override annoying major modes."
   t "global-keys" 'global-keys-minor-mode-map)
