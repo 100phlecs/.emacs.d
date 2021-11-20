@@ -87,36 +87,38 @@
   (moody-replace-eldoc-minibuffer-message-function))
 
 (use-package solarized-theme
-  :after moody
-  :config
-  (setq solarized-use-more-italic t)
-  (setq solarized-scale-markdown-headlines t))
+    :after moody
+    :config
+    (setq solarized-use-more-italic t)
+    (setq solarized-scale-markdown-headlines t))
 
-(defun phl-apply-theme (appearance)
-  "Load theme, taking current system APPEARANCE into consideration."
-  (mapc #'disable-theme custom-enabled-themes)
-  (pcase appearance
-    ('light (load-theme 'solarized-gruvbox-light t))
-    ('dark (load-theme 'solarized-gruvbox-dark t)))
-  ;; preserve syntax highlighting
-  (set-face-background 'region (face-attribute 'highlight :background))
-  (set-face-foreground 'region nil)
-  (setq moody-line (face-attribute 'mode-line :underline))
-  (set-face-attribute 'mode-line          nil :overline   moody-line)
-  (set-face-attribute 'mode-line-inactive nil :overline   moody-line)
-  (set-face-attribute 'mode-line-inactive nil :underline  moody-line)
-  (setq show-paren-priority -50)
-  (set-face-attribute 'mode-line          nil :box        nil)
-  (set-face-attribute 'mode-line-inactive nil :box        nil)
-  (phl-fix-bookmark))
+(use-package zenburn-theme)
+(use-package solo-jazz-theme)
+ (defun phl-apply-theme (appearance)
+   "Load theme, taking current system APPEARANCE into consideration."
+   (mapc #'disable-theme custom-enabled-themes)
+   (pcase appearance
+     ('light (load-theme 'solo-jazz t))
+     ('dark (load-theme 'solarized-zenburn t)))
+   ;; preserve syntax highlighting
+   (set-face-background 'region (face-attribute 'highlight :background))
+   (set-face-foreground 'region nil)
+   (setq moody-line (face-attribute 'mode-line :underline))
+   (set-face-attribute 'mode-line          nil :overline   moody-line)
+   (set-face-attribute 'mode-line-inactive nil :overline   moody-line)
+   (set-face-attribute 'mode-line-inactive nil :underline  moody-line)
+   (setq show-paren-priority -50)
+   (set-face-attribute 'mode-line          nil :box        nil)
+   (set-face-attribute 'mode-line-inactive nil :box        nil)
+   (phl-fix-bookmark))
 
-(defun phl-fix-bookmark ()
-  "Set bookmark appearance after load"
-  (set-face-foreground 'bookmark-face (face-attribute 'default :foreground))
-  (set-face-background 'bookmark-face (face-attribute 'default :background)))
+ (defun phl-fix-bookmark ()
+   "Set bookmark appearance after load"
+   (set-face-foreground 'bookmark-face (face-attribute 'default :foreground))
+   (set-face-background 'bookmark-face (face-attribute 'default :background)))
 
-(add-hook 'bookmark-load-hook #'phl-fix-bookmark)
-(add-hook 'ns-system-appearance-change-functions #'phl-apply-theme)
+ (add-hook 'bookmark-load-hook #'phl-fix-bookmark)
+ (add-hook 'ns-system-appearance-change-functions #'phl-apply-theme)
 
 (use-package which-key
   :init (which-key-mode)
@@ -560,9 +562,11 @@ folder, otherwise delete a word."
 (use-package org-download)
 (add-hook 'dired-mode-hook 'org-download-enable)
 
-(use-package org-bullets
+(use-package org-superstar
   :after org
-  :hook (org-mode . org-bullets-mode))
+  :hook (org-mode . org-superstar-mode)
+  :config
+  (setq org-superstar-headline-bullets-list '("∗")))
 
 (use-package org-roam
   :after consult
