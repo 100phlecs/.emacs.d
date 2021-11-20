@@ -1,7 +1,6 @@
 #+title: 100phlecs of elisp
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
-
-* 100phlecs
+#+begin_src
     ###########################'`################################
     ###########################  V##'############################
     #########################V'  `V  ############################
@@ -50,6 +49,7 @@
     ##P'                       V##############'
     #P'                         `V###########'
     #'                             `V##P'
+    #+end_src
 * Table of Contents
 :PROPERTIES:
 :TOC:      :include all :depth 4 :force (depth) :ignore (this) :local (depth)
