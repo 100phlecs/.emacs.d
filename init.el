@@ -126,6 +126,7 @@
   :config (setq which-key-idle-delay 0.3))
 
 (use-package magit)
+(setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
 
 (use-package expand-region
   :bind(
@@ -192,7 +193,9 @@
           pomidor-mode
           "\\*Warnings\\*"
           "^\\*eshell.*\\*$"
+          "^\\*sly-description\\*$"
           eshell-mode
+          term-mode
           flutter-mode
           helpful-mode
           help-mode
@@ -768,6 +771,16 @@ folder, otherwise delete a word."
 
 (use-package eshell
   :hook (eshell-first-time-mode . phl-configure-eshell))
+
+(defun phl-start-new-term ()
+  "Spawn a new term always."
+  (interactive)
+  (pop-to-buffer-same-window
+   (set-buffer (make-term "terminal" "/bin/zsh")))
+  (term-char-mode)
+  (rename-uniquely))
+
+(global-set-key (kbd "C-c t") #'phl-start-new-term)
 
 (use-package lsp-mode
   :commands (lsp lsp-deffered)

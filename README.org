@@ -78,6 +78,7 @@ EMACS* buffer.
     - [[#dart-mode][dart-mode]]
   - [[#common-lisp][Common Lisp]]
   - [[#rust][Rust]]
+  - [[#nim][Nim]]
 - [[#diagnostics][Diagnostics]]
   - [[#esup][ESUP]]
   - [[#activitywatch][ActivityWatch]]
@@ -296,6 +297,7 @@ Getting used to it, a lot nicer than grabbing a terminal, that's for sure.
 
 #+begin_src emacs-lisp
   (use-package magit)
+  (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
 #+end_src
 
 ** expand region
@@ -406,45 +408,47 @@ much to say about it at this point.
 Trying out [[https://github.com/karthink/popper][popper]].
 Excellent way to manage minor buffers!
 #+begin_src emacs-lisp
-        (use-package popper
-          :init
-          (setq popper-reference-buffers
-                '("\\*Messages\\*"
-                  "Output\\*$"
-                  "\\*Async Shell Command\\*"
-                  "\\*pomidor\\*"
-                  "\\*Backtrace\\*"
-                  pomidor-mode
-                  "\\*Warnings\\*"
-                  "^\\*eshell.*\\*$"
-                  eshell-mode
-                  flutter-mode
-                  helpful-mode
-                  help-mode
-                  compilation-mode))
-          (popper-mode +1)
-          (popper-echo-mode +1)
-          (setq popper-echo-dispatch-keys
-                '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
+  (use-package popper
+    :init
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "\\*pomidor\\*"
+            "\\*Backtrace\\*"
+            pomidor-mode
+            "\\*Warnings\\*"
+            "^\\*eshell.*\\*$"
+            "^\\*sly-description\\*$"
+            eshell-mode
+            term-mode
+            flutter-mode
+            helpful-mode
+            help-mode
+            compilation-mode))
+    (popper-mode +1)
+    (popper-echo-mode +1)
+    (setq popper-echo-dispatch-keys
+          '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
 
-          (defun phl-popper-kill-buffer ()
-            "Kill selected popper buffer without closing popper."
-            (interactive)
-            (popper-kill-latest-popup)
-            (popper-toggle-latest))
+    (defun phl-popper-kill-buffer ()
+      "Kill selected popper buffer without closing popper."
+      (interactive)
+      (popper-kill-latest-popup)
+      (popper-toggle-latest))
 
-          (defun phl-popper-maximize-buffer ()
-            "Maximize selected popper buffer within frame."
-            (interactive)
-            (popper-toggle-type)
-            (maximize-window))
+    (defun phl-popper-maximize-buffer ()
+      "Maximize selected popper buffer within frame."
+      (interactive)
+      (popper-toggle-type)
+      (maximize-window))
 
-          :bind (("M-`"   . popper-toggle-latest)
-                 ("C-`"   . popper-cycle)
-                 ("C-M-`" . popper-toggle-type)
-                 ("C-^" . phl-popper-maximize-buffer)
-                 ("C-~" . phl-popper-kill-buffer))
-          )
+    :bind (("M-`"   . popper-toggle-latest)
+           ("C-`"   . popper-cycle)
+           ("C-M-`" . popper-toggle-type)
+           ("C-^" . phl-popper-maximize-buffer)
+           ("C-~" . phl-popper-kill-buffer))
+    )
 
 #+end_src
 *** Ace Window
@@ -1074,6 +1078,19 @@ It just works.
   (use-package eshell
     :hook (eshell-first-time-mode . phl-configure-eshell))
 #+end_src
+** Term
+It just works more
+#+begin_src emacs-lisp
+  (defun phl-start-new-term ()
+    "Spawn a new term always."
+    (interactive)
+    (pop-to-buffer-same-window
+     (set-buffer (make-term "terminal" "/bin/zsh")))
+    (term-char-mode)
+    (rename-uniquely))
+  
+  (global-set-key (kbd "C-c t") #'phl-start-new-term)
+#+end_src
 ** Language Server (lsp-mode)
 Using lsp-mode because it just works
 
@@ -1165,9 +1182,6 @@ up less. This is also a catch category for emacs shenanigans
     :config
     (setq esup-depth 0))
 #+end_src
-
-
-
 
 ** ActivityWatch
 Recently started using [[https://activitywatch.net][ActivityWatch]] and like it so far. Keeps files local!
