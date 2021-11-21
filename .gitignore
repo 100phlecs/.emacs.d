@@ -1,4 +1,5 @@
 libparinfer_rust.so
+init.el
 elpa
 request
 transient
