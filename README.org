@@ -230,11 +230,11 @@ the Iosevka example below.
   (set-face-attribute 'fixed-pitch nil :family "Iosevka Nerd Font" :height 170)
   (set-face-attribute 'variable-pitch nil :family "Iosevka Nerd Font" :height 170)
   (global-prettify-symbols-mode +1)
-  
+
   (use-package ligature
     :straight (ligature :type git :host github :repo "mickeynp/ligature.el" :files ("*.el" "*"))
     :config
-    (ligature-set-ligatures 'text-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
+    (ligature-set-ligatures '(prog-mode text-mode) '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
                                          "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
                                          "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
                                          ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
@@ -951,8 +951,11 @@ We can just autogenerate it with this snippet.
   (org-babel-do-load-languages
    'org-babel-load-languagesp
    '((emacs-lisp . t)
-     (python . t)))
+     (python . t)
+     (lisp . t)))
+  (setq org-babel-lisp-eval-fn "sly-eval")
   (setq org-src-tab-acts-natively t)
+  (setq org-src-window-setup 'split-window-below)
   (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
   (require 'org-tempo)
@@ -960,6 +963,7 @@ We can just autogenerate it with this snippet.
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("cl" . "src lisp"))
 
   ;; Automatically tangle our .org config file when we save it
   (defun phl-org-babel-tangle-config ()
@@ -1169,7 +1173,9 @@ Going to learn some Lisp
   (use-package lispy)
   (setq lispy-use-sly t)
   (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
-  (add-hook 'lisp-mode-hook (lambda () (lispy-mode 1)))
+  (add-hook 'lisp-mode-hook (lambda () (lispy-mode 1) (company-mode)))
+  (add-hook 'sly-mode-hook (lambda () (electric-pair-mode) (company-mode)))
+
 #+end_src
 ** Rust
 
