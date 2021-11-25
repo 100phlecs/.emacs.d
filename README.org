@@ -55,6 +55,7 @@
 :TOC:      :include all :depth 4 :force (depth) :ignore (this) :local (depth)
 :END:
 :CONTENTS:
+- [[#preface][Preface]]
 - [[#bootstrapping][Bootstrapping]]
   - [[#starting-up][Starting up]]
   - [[#more-path-loading][More path loading]]
@@ -64,7 +65,7 @@
   - [[#font][Font]]
   - [[#rainbow-delimiter][rainbow-delimiter]]
   - [[#modeline][modeline]]
-  - [[#theme---solarized][Theme - Solarized]]
+  - [[#theme][Theme]]
 - [[#discoverability--navigation][Discoverability / Navigation]]
   - [[#which-key][which-key]]
   - [[#git][git]]
@@ -104,32 +105,22 @@
     - [[#dart-mode][dart-mode]]
   - [[#common-lisp][Common Lisp]]
   - [[#rust][Rust]]
-- [[#diagnostics][Diagnostics]]
-  - [[#esup][ESUP]]
-  - [[#activitywatch][ActivityWatch]]
-  - [[#pomodoro-technique][Pomodoro Technique]]
-- [[#resources][Resources]]
 :END:
+
+* Preface
+I primarily use =org-babel= because it helps with organizing. You're at
+least forced to acknowledge headings. Otherwise I'd just get a messy
+init.el file. Which, well, maybe I'll go back to.
 
 * Bootstrapping
 ** Starting up
-Lexical binding adds flexibility/speed for the packages that detect
-it.
+Lexical binding for certain packages & personal functions.
 #+begin_src emacs-lisp
   ;; -*- lexical-binding: t -*-
 #+end_src
 
-And then package managers makes things easy.  We'll also need some path
-variables set, for [[https://github.com/d12frosted/homebrew-emacs-plus/issues/378][gccemacs]] and terminal.  While we're here, I'll also
-grab a package that keeps saves and other files in the emacs.d
-directory, the [[https://github.com/emacscollective/no-littering][no-littering]] package. If you don't set this early on,
-there'll be a lot of litter.
-
-For safely loading themes and such we'll move that to another
-file. Then as a final touch we'll see how long it takes for emacs to
-start.
-
 #+begin_src emacs-lisp
+  ;; needed for gccemacs
   (setenv "LIBRARY_PATH" "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib/gcc/11/gcc/aarch64-apple-darwin20/11.1.0")
 
   (setq gc-cons-threshold (* 50 1000 1000))
@@ -178,7 +169,7 @@ work or certain packages. This is for GUI emacs.
 
 ** Diminish
 To [[https://github.com/myrjola/diminish.el][Diminish]] a mode is to no longer have it show up in the
-modeline. Useful to remove clutter from the modeline.
+modeline. Useful to remove clutter from the modeline display.
 
 #+begin_src emacs-lisp
   (use-package diminish)
@@ -206,7 +197,7 @@ buffers, so we'll disable them.
   (set-fringe-mode 10)
   (setq-default tab-width 2)
   (setq-default indent-tabs-mode nil)
-
+  (setq inhibit-startup-message t)
 
   (setq ring-bell-function 'ignore)
 
@@ -219,8 +210,8 @@ buffers, so we'll disable them.
 #+end_src
 
 ** Font
-I really enjoy [[https://github.com/be5invis/iosevka][Iosevka]]. The cramped nature of it may be off-putting, but
-after using it for a couple of weeks I can't use anything else.
+I enjoy [[https://github.com/be5invis/iosevka][Iosevka]]. The cramped nature of it can be off-putting, but
+after some use you can't use anything else.
 
 Comes with ligatures. Real easy with [[https://github.com/mickeynp/ligature.el][ligature.el]] - they gave me
 the Iosevka example below.
@@ -264,7 +255,7 @@ Stealing some theme management :~)
 #+end_src
 
 ** Theme
-Trying out a new theme!  Was using [[https://github.com/bbatsov/solarized-emacs][solarized]] themescape.
+Trying out a new theme.  Was using [[https://github.com/bbatsov/solarized-emacs][solarized]] themescape.
 
 #+begin_src emacs-lisp
    (use-package solarized-theme
@@ -370,8 +361,6 @@ Getting comfortable at looking variables/functions is the way to go.
     ([remap describe-command] . helpful-command)
     ([remap describe-variable] . helpful-variable)
     ([remap describe-key] . helpful-key))
-
-
 #+end_src
 
 ** complete at point/autocompletion
@@ -475,7 +464,7 @@ Excellent way to manage minor buffers!
 
 #+end_src
 *** Ace Window
-To help move around buffers. Wondering what to reassign [C-x o] to.
+To help move around buffers. Just going to replace C-x o.
 #+begin_src emacs-lisp
 
 
@@ -485,7 +474,7 @@ To help move around buffers. Wondering what to reassign [C-x o] to.
     "global-keys-minor-mode keymap.")
 
   (define-key global-keys-minor-mode-map "\C-c\C-r" 'revert-buffer)
-  (define-key global-keys-minor-mode-map (kbd "M-o") 'ace-window)
+  (define-key global-keys-minor-mode-map (kbd "C-x o") 'ace-window)
   (define-key global-keys-minor-mode-map (kbd "M-`") 'popper-toggle-latest)
   (define-minor-mode global-keys-minor-mode
     "A minor mode so that global key settings override annoying major modes."
@@ -602,43 +591,14 @@ thought.  So far consult buffer preview is pretty nice.
            ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
            ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
            ("M-s L" . consult-line-multi))           ;; needed by consult-line to detect isearch
-
-    ;; Enable automatic preview at point in the *Completions* buffer.
-    ;; This is relevant when you use the default completion UI,
-    ;; and not necessary for Vertico, Selectrum, etc.
-    ;;:hook (completion-list-mode . consult-preview-at-point-mode)
-
-    ;; The :init configuration is always executed (Not lazy)
     :init
-
-    ;; Optionally configure the register formatting. This improves the register
-    ;; preview for `consult-register', `consult-register-load',
-    ;; `consult-register-store' and the Emacs built-ins.
     (setq register-preview-delay 0
           register-preview-function #'consult-register-format)
-
-    ;; Optionally tweak the register preview window.
-    ;; This adds thin lines, sorting and hides the mode line of the window.
     (advice-add #'register-preview :override #'consult-register-window)
-
-    ;; Optionally replace `completing-read-multiple' with an enhanced version.
     (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
-
-    ;; Use Consult to select xref locations with preview
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
-
-    ;; Configure other variables and modes in the :config section,
-    ;; after lazily loading the package.
     :config
-
-    ;; Optionally configure preview. The default value
-    ;; is 'any, such that any key triggers the preview.
-    ;; (setq consult-preview-key 'any)
-    ;; (setq consult-preview-key (kbd "M-."))
-    ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
-    ;; For some commands and buffer sources it is useful to configure the
-    ;; :preview-key on a per-command basis using the `consult-customize' macro.
     (consult-customize
      consult-theme
      :preview-key '(:debounce 0.2 any)
@@ -646,29 +606,13 @@ thought.  So far consult buffer preview is pretty nice.
      consult-bookmark consult-recent-file consult-xref
      consult--source-file consult--source-project-file consult--source-bookmark
      :preview-key (kbd "M-."))
-
-    ;; Optionally configure the narrowing key.
-    ;; Both < and C-+ work reasonably well.
     (setq consult-narrow-key "<") ;; (kbd "C-+")
 
-    ;; Optionally make narrowing help available in the minibuffer.
-    ;; You may want to use `embark-prefix-help-command' or which-key instead.
-    ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
-
-    ;; Optionally configure a function which returns the project root directory.
-    ;; There are multiple reasonable alternatives to chose from.
-      ;;;; 1. project.el (project-roots)
+   
     (setq consult-project-root-function
           (lambda ()
             (when-let (project (project-current))
               (car (project-roots project)))))
-      ;;;; 2. projectile.el (projectile-project-root)
-    ;; (autoload 'projectile-project-root "projectile")
-    ;; (setq consult-project-root-function #'projectile-project-root)
-      ;;;; 3. vc.el (vc-root-dir)
-    ;; (setq consult-project-root-function #'vc-root-dir)
-      ;;;; 4. locate-dominating-file
-    ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
     )
   (require 'consult)
   (use-package consult-yasnippet
@@ -691,8 +635,8 @@ Just adding this in since it is often paired with the others.
 Trying out some embark+avy combinations too.
 #+begin_src emacs-lisp
   (use-package embark
-    :bind (("M-'" . embark-act)
-           ("M-C-'" . embark-export))
+    :bind (("M-o" . embark-act)
+           ("M-C-o" . embark-export))
     :config
     (setq embark-cycle-key (kbd "O"))
     ;; Optionally replace the key help with a completing-read interface
@@ -945,17 +889,18 @@ Makes writing easy compared to everything else I've tried.
 ** org tangle
 
 This is how one generates the configuration. And also edit this
-configuration.
+configuration. 
 We can just autogenerate it with this snippet.
 #+begin_src emacs-lisp
   (org-babel-do-load-languages
-   'org-babel-load-languagesp
-   '((emacs-lisp . t)
-     (python . t)
-     (lisp . t)))
+  'org-babel-load-languagesp
+  '((emacs-lisp . t)
+    (python . t)
+    (lisp . t)))
   (setq org-babel-lisp-eval-fn "sly-eval")
-  (setq org-src-tab-acts-natively t)
-  (setq org-src-window-setup 'split-window-below)
+
+  (setq org-src-tab-acts-natively nil)
+  (setq org-src-window-setup 'current-window)
   (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
   (require 'org-tempo)
@@ -1200,51 +1145,3 @@ Going to learn some Lisp
       (electric-pair-mode 1)))
 
 #+end_src
-
-* Diagnostics
-To find ways on improving, I track the time I spend as well as record
-my focus time. This let's me evaluate where I slipped up and why. Not
-trying to be a workaholic or anything of the sort, just want to slip
-up less. This is also a catch category for emacs shenanigans
-** ESUP
-
-#+begin_src emacs-lisp
-  (use-package esup
-    :config
-    (setq esup-depth 0))
-#+end_src
-
-** ActivityWatch
-Recently started using [[https://activitywatch.net][ActivityWatch]] and like it so far. Keeps files local!
-Previously I used RescueTime but eventually stopped for unknown
-reasons.
-
-#+begin_src emacs-lisp
-  (use-package activity-watch-mode
-    :init
-     (global-activity-watch-mode)
-    :diminish activity-watch-mode)
-#+end_src
-
-** Pomodoro Technique
-Trying out this technique. Seeing if it works for me. I think it does
-in terms of increasing my focus time.
-Using [[https://github.com/TatriX/pomidor/][pomidor]], quite nice.
-#+begin_src emacs-lisp
-  (use-package pomidor
-    :bind (("<f12>" . pomidor))
-    :config (setq pomidor-sound-tick nil
-                  pomidor-sound-tack nil)
-    :hook (pomidor-mode . (lambda ()
-                            (display-line-numbers-mode -1) ; Emacs 26.1+
-                            (setq left-fringe-width 0 right-fringe-width 0)
-                            (setq left-margin-width 2 right-margin-width 0)
-                            ;; force fringe update
-                            (set-window-buffer nil (current-buffer)))))
-  (setq gc-cons-threshold (* 2 1000 1000))
-#+end_src
-
-* Resources
-I was only able to follow a path of least resistance by following
-[[https://github.com/daviwil/emacs-from-scratch/][Emacs from Scratch]]. Do check SystemCrafter's [[https://systemcrafters.net/emacs-from-scratch/][wiki page]] for information
-if videos are too much for you!
