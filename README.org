@@ -476,6 +476,7 @@ To help move around buffers. Just going to replace C-x o.
   (define-key global-keys-minor-mode-map "\C-c\C-r" 'revert-buffer)
   (define-key global-keys-minor-mode-map (kbd "C-x o") 'ace-window)
   (define-key global-keys-minor-mode-map (kbd "M-`") 'popper-toggle-latest)
+  (define-key global-keys-minor-mode-map (kbd "C-'") 'avy-goto-char-2)
   (define-minor-mode global-keys-minor-mode
     "A minor mode so that global key settings override annoying major modes."
     t "global-keys" 'global-keys-minor-mode-map)
@@ -492,6 +493,8 @@ To help move around buffers. Just going to replace C-x o.
   (defun my-minibuffer-setup-hook ()
     (global-keys-minor-mode 0))
   (add-hook 'minibuffer-setup-hook 'my-minibuffer-setup-hook)
+
+  (diminish 'global-keys-minor-mode)
 #+end_src
 
 ** search completion
@@ -531,9 +534,6 @@ thought.  So far consult buffer preview is pretty nice.
 #+begin_src emacs-lisp
   (use-package orderless
   :init
-  ;; Configure a custom style dispatcher (see the Consult wiki)
-  ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
-  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
   (setq completion-styles '(orderless)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion))))))
@@ -701,7 +701,8 @@ Trying out some embark+avy combinations too.
   (use-package avy
     :demand
     :bind (("C-;" . avy-goto-char-timer)
-           ("C-:" . avy-isearch)))
+           ("C-:" . avy-isearch)
+           ("C-'" . avy-goto-char-2)))
 
   (defun avy-action-embark (pt)
     (unwind-protect
@@ -1112,14 +1113,42 @@ Surprised how well this is integrated. You just need more packages
 ** Common Lisp
 Going to learn some Lisp
 #+begin_src emacs-lisp
-  (use-package sly)
-  (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
+  (use-package slime)
+  (use-package slime-company
+  :after (slime company)
+  :config
+  (setq slime-company-completion 'fuzzy
+        slime-company-after-completion 'slime-company-just-one-space))
+  (add-to-list 'company-backends 'company-slime)
 
+
+  (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
+  (use-package rainbow-identifiers)
   (use-package lispy)
-  (setq lispy-use-sly t)
-  (add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
-  (add-hook 'lisp-mode-hook (lambda () (lispy-mode 1) (company-mode)))
-  (add-hook 'sly-mode-hook (lambda () (electric-pair-mode) (company-mode)))
+
+  (with-eval-after-load 'slime
+    (setq slime-protocol-version 'ignore)
+    (setq slime-net-coding-system 'utf-8-unix)
+    (let ((features '(slime-fancy slime-repl slime-fuzzy)))
+      (when (require 'slime-company nil t)
+        (push 'slime-company features))
+      (slime-setup features)) )
+
+
+  (add-hook
+   'emacs-lisp-mode-hook
+   (lambda () (lispy-mode 1)
+     (company-mode)
+     (rainbow-identifiers-mode)))
+
+  (add-hook
+   'lisp-mode-hook
+   (lambda ()
+     (lispy-mode 1)
+     (company-mode)
+     (rainbow-identifiers-mode)
+     ))
+  (add-hook 'slime-mode-hook (lambda () (electric-pair-mode) (company-mode)))
 
 #+end_src
 ** Rust
