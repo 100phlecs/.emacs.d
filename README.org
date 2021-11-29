@@ -90,7 +90,7 @@
 - [[#org][Org]]
   - [[#ui-setup][UI Setup]]
   - [[#grab-org-and-its-modules][Grab org and its modules]]
-  - [[#org-bullets][org bullets]]
+  - [[#org-bullets--center][org bullets + center]]
   - [[#org-roam][org-roam]]
   - [[#org-toc][org-toc]]
   - [[#easily-insert-nodes-quicker][Easily insert nodes quicker]]
@@ -108,6 +108,7 @@
 - [[#misc][Misc]]
   - [[#activitywatch][ActivityWatch]]
   - [[#multiple-cursors][multiple-cursors]]
+  - [[#command-log][command log]]
 :END:
 
 * Preface
@@ -150,14 +151,6 @@ Lexical binding for certain packages & personal functions.
          (message (concat  "File " (concat custom-file " already exists")))
        (with-temp-buffer (write-file custom-file)))
     (load custom-file)
-
-  (add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "Emacs ready in %s with %d garbage collections."
-                     (format "%.2f seconds"
-                             (float-time
-                              (time-subtract after-init-time before-init-time)))
-                     gcs-done)))
 #+end_src
 
 ** More path loading
@@ -201,7 +194,8 @@ buffers, so we'll disable them.
   (setq-default tab-width 2)
   (setq-default indent-tabs-mode nil)
   (setq inhibit-startup-message t)
-
+  (if (equal window-system nil)
+   (menu-bar-mode -1))
   (setq ring-bell-function 'ignore)
 
   (column-number-mode t)
@@ -261,38 +255,45 @@ Stealing some theme management :~)
 Trying out a new theme.  Was using [[https://github.com/bbatsov/solarized-emacs][solarized]] regular.
 
 #+begin_src emacs-lisp
-   (use-package solarized-theme
-      :after moody
-      :config
-      (setq solarized-use-more-italic t)
-      (setq solarized-scale-markdown-headlines t))
+  (use-package solarized-theme
+     :config
+     (setq solarized-use-more-italic t)
+     (setq solarized-scale-markdown-headlines t))
+  (use-package kaolin-themes)
 
-   (defun phl-apply-theme (appearance)
-     "Load theme, taking current system APPEARANCE into consideration."
-     (mapc #'disable-theme custom-enabled-themes)
-     (pcase appearance
-       ('light (load-theme 'solarized-gruvbox-light t))
-       ('dark (load-theme 'solarized-selenized-dark t)))
-     ;; preserve syntax highlighting
-     (set-face-background 'region (face-attribute 'highlight :background))
-     (set-face-foreground 'region nil)
-     (setq moody-line (face-attribute 'mode-line :underline))
-     (set-face-attribute 'mode-line          nil :overline   moody-line)
-     (set-face-attribute 'mode-line-inactive nil :overline   moody-line)
-     (set-face-attribute 'mode-line-inactive nil :underline  moody-line)
-     (setq show-paren-priority -50)
-     (set-face-attribute 'mode-line          nil :box        nil)
-     (set-face-attribute 'mode-line-inactive nil :box        nil)
-     (phl-fix-bookmark))
 
-   (defun phl-fix-bookmark ()
-     "Set bookmark appearance after load"
-     (set-face-foreground 'bookmark-face (face-attribute 'default :foreground))
-     (set-face-background 'bookmark-face (face-attribute 'default :background)))
+  (defun phl-theme-mods ()
+    "Fix look after loading a theme"
+    ;; preserve syntax highlighting
+    (set-face-background 'region (face-attribute 'highlight :background))
+    (set-face-foreground 'region nil)
+    (setq moody-line (face-attribute 'mode-line :underline))
+    (set-face-attribute 'mode-line nil :overline moody-line)
+    (set-face-attribute 'mode-line-inactive nil :overline moody-line)
+    (set-face-attribute 'mode-line-inactive nil :underline moody-line)
+    (setq show-paren-priority -50)
+    (set-face-attribute 'mode-line nil :box nil)
+    (set-face-attribute 'mode-line-inactive nil :box nil))
 
-   (add-hook 'bookmark-load-hook #'phl-fix-bookmark)
-   (add-hook 'ns-system-appearance-change-functions #'phl-apply-theme)
+  (defun phl-apply-theme (appearance)
+    "Load theme, taking current system APPEARANCE into consideration."
+    (mapc #'disable-theme custom-enabled-themes)
+    (pcase appearance
+      ('light (load-theme 'kaolin-breeze t))
+      ('dark (load-theme 'kaolin-mono-dark t)))
+    (phl-theme-mods)
+    (phl-fix-bookmark))
+  (if (equal window-system nil)
+      (load-theme 'kaolin-temple))
+  (defun phl-fix-bookmark ()
+    "Set bookmark appearance after load"
+    (set-face-foreground 'bookmark-face (face-attribute 'default :foreground))
+    (set-face-background 'bookmark-face (face-attribute 'default :background)))
+
+  (add-hook 'bookmark-load-hook #'phl-fix-bookmark)
+  (add-hook 'ns-system-appearance-change-functions #'phl-apply-theme)
 #+end_src
+
 * Discoverability / Navigation
 
 ** which-key
@@ -391,6 +392,10 @@ use of it.
   (use-package doom-snippets
   :after yasnippet
   :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
+  (use-package common-lisp-snippets
+  :after yasnippet
+  :straight (common-lisp-snippets :type git :host github :repo "mrkkrp/common-lisp-snippets" :files ("*.el" "*")))
+
 #+end_src
 
 ** whole-line-or-region
@@ -475,8 +480,20 @@ To help move around buffers. Just going to replace C-x o.
   (defvar global-keys-minor-mode-map (make-sparse-keymap)
     "global-keys-minor-mode keymap.")
 
+  (defun phl-split-window-right ()
+    (interactive)
+    (split-window-right)
+    (other-window 1))
+
+  (defun phl-split-window-below ()
+    (interactive)
+    (split-window-below)
+    (other-window 1))
+
   (define-key global-keys-minor-mode-map "\C-c\C-r" 'revert-buffer)
   (define-key global-keys-minor-mode-map (kbd "C-x o") 'ace-window)
+  (define-key global-keys-minor-mode-map (kbd "C-x 2") 'phl-split-window-below)
+  (define-key global-keys-minor-mode-map (kbd "C-x 3") 'phl-split-window-right)
   (define-key global-keys-minor-mode-map (kbd "M-`") 'popper-toggle-latest)
   (define-key global-keys-minor-mode-map (kbd "C-'") 'avy-goto-char-2)
   (define-minor-mode global-keys-minor-mode
@@ -784,17 +801,30 @@ The more I use it the more I wonder why I haven't used it before.
     :hook (org-mode . phl-org-mode-setup)
     :config
     (setq org-agenda-start-with-log-mode t)
+    (setq org-agenda-window-setup 'current-window)
+    (setq org-agenda-tags-column org-tags-column)
+    (setq org-agenda-sticky t)
+    (setq org-agenda-inhibit-startup nil)
+    (setq org-agenda-dim-blocked-tasks nil)
+    (setq org-agenda-compact-blocks nil)
+    (setq org-agenda-time-grid
+          (quote
+           ((daily today remove-match)
+            (800 1200 1600 2000)
+            "......"
+            "----------------")))
+
     (setq org-log-done 'time)
     (setq org-log-into-drawer t)
     (setq org-ellipsis " ⤵"
-    org-hide-emphasis-markers t)
+          org-hide-emphasis-markers t)
     (setq org-todo-keywords
-      '((sequence "BACKLOG(b)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-        (sequence "HABIT(h)" "|" "CHECKED(c)")))
+          '((sequence "BACKLOG(b)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+            (sequence "HABIT(h)" "|" "CHECKED(c)")))
 
     (setq org-refile-targets
-      '(("Archive.org" :maxlevel . 1)
-        ("Tasks.org" :maxlevel . 1)))
+          '(("Archive.org" :maxlevel . 1)
+            ("Tasks.org" :maxlevel . 1)))
     (require 'org-habit)
     (add-to-list 'org-modules 'org-habit)
     (setq org-habit-graph-column 60)
@@ -806,13 +836,21 @@ The more I use it the more I wonder why I haven't used it before.
   (add-hook 'dired-mode-hook 'org-download-enable)
 #+end_src
 
-** org bullets
+** org bullets + center 
 #+begin_src emacs-lisp
-      (use-package org-superstar
-        :after org
-        :hook (org-mode . org-superstar-mode)
-        :config
-        (setq org-superstar-headline-bullets-list '("∗")))
+  (use-package org-superstar
+    :after org
+    :hook (org-mode . org-superstar-mode)
+    :config
+    (setq org-superstar-headline-bullets-list '("∗")))
+
+  (defun phl-org-mode-visual-fill ()
+    (setq visual-fill-column-width 100
+          visual-fill-column-center-text t)
+    (visual-fill-column-mode 1))
+
+  (use-package visual-fill-column
+    :hook (org-mode . phl-org-mode-visual-fill))
 #+end_src
 
 ** org-roam
@@ -1115,22 +1153,25 @@ alien technology
 #+begin_src emacs-lisp
   (use-package sly)
   (setq inferior-lisp-program "/opt/homebrew/bin/sbcl")
-  (use-package rainbow-identifiers)
+  (use-package rainbow-blocks)
   (use-package lispy)
 
   (add-hook
    'emacs-lisp-mode-hook
    (lambda () (lispy-mode 1)
          (company-mode)
-         (rainbow-identifiers-mode)))
+         (rainbow-blocks-mode)))
 
   (add-hook
    'lisp-mode-hook
    (lambda () (lispy-mode 1)
          (company-mode)
-         (rainbow-identifiers-mode)))
+         (rainbow-blocks-mode)))
 
-  (add-hook 'sly-mode-hook (lambda () (electric-pair-mode) (company-mode)))
+  (add-hook 'sly-mode-hook (lambda ()
+                             (electric-pair-mode)
+                             (company-mode)
+                             (rainbow-blocks-mode)))
 
 #+end_src
 ** Rust
@@ -1171,4 +1212,9 @@ reasons.
 ** multiple-cursors
 #+begin_src emacs-lisp
 (use-package multiple-cursors)
+#+end_src
+** command log
+#+begin_src emacs-lisp
+(use-package command-log-mode
+:straight (command-log-mode :type git :host github :repo "pierre-rouleau/command-log-mode" :files ("*.el" "*")))
 #+end_src
