@@ -109,6 +109,7 @@
   - [[#activitywatch][ActivityWatch]]
   - [[#multiple-cursors][multiple-cursors]]
   - [[#command-log][command log]]
+  - [[#doc-view][doc-view]]
 :END:
 
 * Preface
@@ -255,17 +256,12 @@ Stealing some theme management :~)
 Trying out a new theme.  Was using [[https://github.com/bbatsov/solarized-emacs][solarized]] regular.
 
 #+begin_src emacs-lisp
-  (use-package solarized-theme
-     :config
-     (setq solarized-use-more-italic t)
-     (setq solarized-scale-markdown-headlines t))
   (use-package kaolin-themes)
-
 
   (defun phl-theme-mods ()
     "Fix look after loading a theme"
     ;; preserve syntax highlighting
-    (set-face-background 'region (face-attribute 'highlight :background))
+    ;; (set-face-background 'region (face-attribute 'highlight :background))
     (set-face-foreground 'region nil)
     (setq moody-line (face-attribute 'mode-line :underline))
     (set-face-attribute 'mode-line nil :overline moody-line)
@@ -378,7 +374,7 @@ Autocompletion is smart for any sort of typing, isn't it? So I enable
     (:map lsp-mode-map
           ("<tab>" . company-indent-or-complete-common))
     :custom
-    (company-minimum-prefix-length 1)
+    (company-minimum-prefix-length 3)
     (company-idle-delay 0.0))
     
 #+end_src
@@ -445,8 +441,8 @@ Excellent way to manage minor buffers!
             helpful-mode
             help-mode
             compilation-mode))
-    (popper-mode +1)
-    (popper-echo-mode +1)
+    (popper-mode 1)
+    (popper-echo-mode 1)
     (setq popper-echo-dispatch-keys
           '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
 
@@ -456,18 +452,12 @@ Excellent way to manage minor buffers!
       (popper-kill-latest-popup)
       (popper-toggle-latest))
 
-    (defun phl-popper-maximize-buffer ()
-      "Maximize selected popper buffer within frame."
-      (interactive)
-      (popper-toggle-type)
-      (maximize-window))
-
-    :bind (("M-`"   . popper-toggle-latest)
-           ("C-`"   . popper-cycle)
+    :bind (("M-`" . popper-toggle-latest)
+           ("C-`" . popper-cycle)
            ("M-~" . popper-toggle-type)
-           ("C-^" . phl-popper-maximize-buffer)
-           ("C-M-`" . phl-popper-kill-buffer))
-    )
+           ("C-x &" . maximize-window)
+           ("C-M-`" . phl-popper-kill-buffer)))
+
 
 #+end_src
 *** Ace Window
@@ -1217,4 +1207,11 @@ reasons.
 #+begin_src emacs-lisp
 (use-package command-log-mode
 :straight (command-log-mode :type git :host github :repo "pierre-rouleau/command-log-mode" :files ("*.el" "*")))
+#+end_src
+** doc-view
+Doc view works just fine! 
+#+begin_src emacs-lisp
+  (use-package doc-view
+    :config
+    (setq doc-view-resolution 400))
 #+end_src
