@@ -79,7 +79,7 @@
   - [[#whole-line-or-region][whole-line-or-region]]
   - [[#project-management][project management]]
   - [[#buffer-management][buffer management]]
-    - [[#popper][Popper]]
+    - [[#tabs][tabs]]
     - [[#ace-window][Ace Window]]
   - [[#search-completion][search completion]]
     - [[#vertico][Vertico]]
@@ -105,8 +105,8 @@
     - [[#dart-mode][dart-mode]]
   - [[#common-lisp][Common Lisp]]
   - [[#rust][Rust]]
+  - [[#svelte][Svelte]]
 - [[#misc][Misc]]
-  - [[#activitywatch][ActivityWatch]]
   - [[#multiple-cursors][multiple-cursors]]
   - [[#command-log][command log]]
   - [[#doc-view][doc-view]]
@@ -126,7 +126,7 @@ Lexical binding for certain packages & personal functions.
 
 #+begin_src emacs-lisp
   ;; needed for gccemacs
-  (setenv "LIBRARY_PATH" "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib/gcc/11/gcc/aarch64-apple-darwin20/11.1.0")
+  (setenv "LIBRARY_PATH" "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib/gcc/11/gcc/aarch64-apple-darwin20/11")
 
   (setq gc-cons-threshold (* 50 1000 1000))
     (defvar bootstrap-version)
@@ -162,6 +162,11 @@ work or certain packages. This is for GUI emacs.
   (use-package exec-path-from-shell
     :init
     (exec-path-from-shell-initialize))
+
+  (let ((default-directory "/opt/homebrew/share/emacs/site-lisp"))
+    (normal-top-level-add-subdirs-to-load-path))
+
+  (autoload 'gerbil-mode "gerbil-mode" "Gerbil editing mode." t)
 #+end_src
 
 ** Diminish
@@ -416,54 +421,71 @@ much to say about it at this point.
        (project-vc-dir "VC-Dir" nil)
        (project-eshell "Eshell" nil)
        (magit-status "Magit" ?m))))
+
+  ;; scan on startup for new projects 
+  (mapc
+   #'project-remember-projects-under
+   '("~/common-lisp"
+     "~/repos"))
+
 #+end_src
 
 ** buffer management
-*** Popper
+*** tabs
+Going to try out using tabs as 'workspaces'
+and just switch to eshell buffer when its needed
+so far so good
+#+begin_src emacs-lisp
+  (setq tab-bar-show nil)
+  (setq tab-bar-select-tab-modifiers '(super))
+  (tab-bar-mode t)
+#+end_src
+
+*** COMMENT Popper
 Trying out [[https://github.com/karthink/popper][popper]].
 Excellent way to manage minor buffers!
+issue: I rarely close them until there are too many
 #+begin_src emacs-lisp
-  (use-package popper
-    :init
-    (setq popper-reference-buffers
-          '("\\*Messages\\*"
-            "Output\\*$"
-            "\\*Async Shell Command\\*"
-            "\\*pomidor\\*"
-            "\\*Backtrace\\*"
-            pomidor-mode
-            "\\*Warnings\\*"
-            "^\\*eshell.*\\*$"
-            "^\\*sly-description\\*$"
-            eshell-mode
-            term-mode
-            flutter-mode
-            helpful-mode
-            help-mode
-            compilation-mode))
-    (popper-mode 1)
-    (popper-echo-mode 1)
-    (setq popper-echo-dispatch-keys
-          '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
+    (use-package popper
+      :init
+      (setq popper-reference-buffers
+            '("\\*Messages\\*"
+              "Output\\*$"
+              "\\*Async Shell Command\\*"
+              "\\*pomidor\\*"
+              "\\*Backtrace\\*"
+              pomidor-mode
+              "\\*Warnings\\*"
+              "^\\*eshell.*\\*$"
+              "^\\*sly-description\\*$"
+              eshell-mode
+              term-mode
+              flutter-mode
+              helpful-mode
+              help-mode
+              compilation-mode))
+      (popper-mode 1)
+      (popper-echo-mode 1)
+      (setq popper-echo-dispatch-keys
+            '("C-1" "C-2" "C-3" "C-4" "C-5" "C-6" "C-7" "C-8" "C-9" "C-0"))
 
-    (defun phl-popper-kill-buffer ()
-      "Kill selected popper buffer without closing popper."
-      (interactive)
-      (popper-kill-latest-popup)
-      (popper-toggle-latest))
+      (defun phl-popper-kill-buffer ()
+        "Kill selected popper buffer without closing popper."
+        (interactive)
+        (popper-kill-latest-popup)
+        (popper-toggle-latest))
 
-    :bind (("M-`" . popper-toggle-latest)
-           ("C-`" . popper-cycle)
-           ("M-~" . popper-toggle-type)
-           ("C-x &" . maximize-window)
-           ("C-M-`" . phl-popper-kill-buffer)))
+      :bind (("M-`" . popper-toggle-latest)
+             ("C-`" . popper-cycle)
+             ("M-~" . popper-toggle-type)
+             ("C-x &" . maximize-window)
+             ("C-M-`" . phl-popper-kill-buffer)))
 
-
+  
 #+end_src
 *** Ace Window
 To help move around buffers. Just going to replace C-x o.
 #+begin_src emacs-lisp
-
 
   (use-package ace-window)
 
@@ -484,7 +506,7 @@ To help move around buffers. Just going to replace C-x o.
   (define-key global-keys-minor-mode-map (kbd "C-x o") 'ace-window)
   (define-key global-keys-minor-mode-map (kbd "C-x 2") 'phl-split-window-below)
   (define-key global-keys-minor-mode-map (kbd "C-x 3") 'phl-split-window-right)
-  (define-key global-keys-minor-mode-map (kbd "M-`") 'popper-toggle-latest)
+;;  (define-key global-keys-minor-mode-map (kbd "M-`") 'popper-toggle-latest)
   (define-key global-keys-minor-mode-map (kbd "C-'") 'avy-goto-char-2)
   (define-minor-mode global-keys-minor-mode
     "A minor mode so that global key settings override annoying major modes."
@@ -1084,14 +1106,29 @@ It just works.
 ** Term
 It just works more
 #+begin_src emacs-lisp
+  (require 'term)
+
   (defun phl-start-new-term ()
-    "Spawn a new term always."
+        "Spawn a new term always."
+        (interactive)
+        (pop-to-buffer-same-window
+         (set-buffer (make-term "terminal" "/bin/zsh")))
+        (term-line-mode)
+        (rename-uniquely))
+
+
+  (defun phl-term-toggle-mode ()
+    "Toggles term between line mode and char mode"
     (interactive)
-    (pop-to-buffer-same-window
-     (set-buffer (make-term "terminal" "/bin/zsh")))
-    (term-char-mode)
-    (rename-uniquely))
-  
+    (if (term-in-line-mode)
+        (term-char-mode)
+      (term-line-mode)))
+
+  (define-key term-mode-map (kbd "C-c C-j") #'phl-term-toggle-mode)
+  (define-key term-mode-map (kbd "C-c C-k") #'phl-term-toggle-mode)
+
+  (define-key term-raw-map (kbd "C-c C-j") #'phl-term-toggle-mode)
+  (define-key term-raw-map (kbd "C-c C-k") #'phl-term-toggle-mode)
   (global-set-key (kbd "C-c t") #'phl-start-new-term)
 #+end_src
 ** Language Server (lsp-mode)
@@ -1187,19 +1224,24 @@ alien technology
       (electric-pair-mode 1)))
 
 #+end_src
-* Misc
-** ActivityWatch
-Recently started using [[https://activitywatch.net][ActivityWatch]] and like it so far. Keeps files local!
-Previously I used RescueTime but eventually stopped for unknown
-reasons.
+** Svelte
 
 #+begin_src emacs-lisp
-  (use-package activity-watch-mode
-    :init
-     (global-activity-watch-mode)
-    :diminish activity-watch-mode)
+  (use-package web-mode
+    :config
+    (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.svelte\\'" . web-mode))
+    (setq web-mode-engines-alist
+        '(("svelte" "\\.svelte\\'"))))
+
+  (add-hook 'web-mode-hook (lambda ()
+                              (setq web-mode-code-indent-offset 2)
+                              (setq web-mode-markup-indent-offset 2)
+                              (setq web-mode-css-indent-offset 2)))
 #+end_src
+* Misc
 ** multiple-cursors
+I rarely use this. might remove
 #+begin_src emacs-lisp
 (use-package multiple-cursors)
 #+end_src
@@ -1209,7 +1251,8 @@ reasons.
 :straight (command-log-mode :type git :host github :repo "pierre-rouleau/command-log-mode" :files ("*.el" "*")))
 #+end_src
 ** doc-view
-Doc view works just fine! 
+Doc view works just fine!
+but I just prefer to have the pdf in a separate window.
 #+begin_src emacs-lisp
   (use-package doc-view
     :config
